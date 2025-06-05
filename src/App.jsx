@@ -3,6 +3,9 @@ import './App.css'
 import { LoginPage } from './pages'
 import { RouterApp } from './routes/RouterApp'
 import { ProtectedRoute } from './routes/protectedRoute'
+import { AdminPage } from './pages/adminPage'
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function App() {
   return (
@@ -10,13 +13,16 @@ function App() {
       <Routes>
         <Route 
           path="/*" 
+          element={<RouterApp />} />
+        
+        <Route
+          path="/admin"
           element={
             <ProtectedRoute>
-              <RouterApp />
+              <AdminPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>
   )

@@ -1,13 +1,23 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import{ Container,Nav,Navbar} from 'react-bootstrap'
 
 export const NavigateApp = () => {
   return (
     <div>
-      <NavLink to='/'>Home</NavLink>
-      <span> || </span>
-      <NavLink to='/about'>About</NavLink>
-      <span> || </span>
+     <Navbar bg="dark" data-bs-theme="dark">
+        <Container>
+          <Navbar.Brand href="#home">Navbar</Navbar.Brand>
+          <Nav className="me-auto">
+            <Nav.Link href="#home">Home</Nav.Link>
+            <Nav.Link href="#features">Features</Nav.Link>
+            <Nav.Link href="#pricing">Pricing</Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar>
+      <br />
+      
+
     </div>
   )
 }
