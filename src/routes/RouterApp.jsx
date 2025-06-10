@@ -4,6 +4,7 @@ import { FooterComponent } from '../components/footerComponent';
 import { Route, Routes } from 'react-router-dom';
 import { AboutUs, Error404, HomePage, LoginPage } from '../pages';
 import { Contactos } from '../pages/contactos';
+import {CardsCabañas} from '../pages/reservas';
 
 export const RouterApp = () => {
   return (
@@ -19,6 +20,7 @@ export const RouterApp = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<Error404 />} />
           <Route path='/contactos' element={<Contactos/>}></Route>
+          <Route path='/reservas' element={<CardsCabañas/>}></Route>
         </Routes>
       </main>
 

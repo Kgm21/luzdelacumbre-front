@@ -11,7 +11,7 @@ export const FooterComponent = () => {
         <Row className="align-items-center text-center text-md-start">
           {/* Logo */}
           <Col lg={4} md={4} sm={12} className="mb-3 mb-md-0 d-flex justify-content-center">
-            <img src="/img1.png" alt="DalePLay Logo" className="footer-logo" />
+            <img src="/img1.png" alt="" className="footer-logo" />
           </Col>
 
           <Col lg={4} md={4} sm={12} className="mb-3 mb-md-0 text-center">
