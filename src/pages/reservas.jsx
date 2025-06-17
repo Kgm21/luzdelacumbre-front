@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-export const CardsCabañas= () => {
+export const CardsCabanas= () => {
   return (
     <div className="bg-light py-5 min-vh-100">
       <div className="container">
@@ -88,4 +88,4 @@ export const CardsCabañas= () => {
   );
 };
 
-
+export default CardsCabanas;

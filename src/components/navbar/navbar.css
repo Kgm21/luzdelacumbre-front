@@ -1,0 +1,28 @@
+.navbar-custom {
+  background-color: #e0f8fa; /* Fondo beige */
+}
+
+.nav-link-custom{
+  color: #000000 !important; /* Texto gris */
+  margin: 0 10px;
+  font-size: 1.1rem;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+  color: #65523c !important; /* Marron para hover y activo */
+  font-weight: bold !important;
+}
+
+.nav-link-custom[data-special] {
+  color: #3C6E47 !important; /* Verde para enlaces destacados como "inicio de sesión" */
+}
+
+.navbar-brand-custom {
+  color: #ccb648 !important; /* Dorado para el logo o marca */
+}
+
+.navbar-brand-logo {
+  border-radius: 50% !important; /* Opcional, para un logo circular */
+  background-color: #ccb648 !important; /* Dorado como fondo del logo */
+}
