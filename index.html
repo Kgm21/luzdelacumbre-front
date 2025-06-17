@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Hospedajes</title>
+  <!-- Enlace a Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Enlaces a Google Fonts: Inter para texto general y Lora para títulos -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Paleta de Colores */
+    :root {
+      --marron: #65523c;
+      --beige: #FAF3E0;
+      --verde: #3C6E47;
+      --gris: #1E1E1E;
+      --dorado: #ccb648;
+      --rosa-palido: #eecfce; /* Nuevo color para el botón de iniciar sesión */
+      --gris-oscuro-transparente: rgba(30, 30, 30, 0.8); /* Para el logo, si se superpone */
+    }
+
+    /* Estilos globales del cuerpo */
+    body {
+      background-color: var(--beige);
+      color: var(--gris);
+      font-family: 'Inter', sans-serif; /* Fuente para el cuerpo del texto */
+    }
+
+    /* Estilos para títulos h1, h2, h3 */
+    h1, h2, h3 {
+      font-family: 'Lora', serif; /* Nueva fuente para títulos */
+    }
+
+    /* Estilos para el encabezado con imagen de fondo */
+    header {
+      background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80');
+    }
+
+    /* Estilos para el contenedor del buscador */
+    .buscador {
+      background-color: white;
+      color: var(--gris);
+    }
+
+    /* Estilos para el botón principal (Buscar hospedaje) */
+    .boton-principal {
+      background-color: var(--marron);
+      color: white;
+      /* Transición para efectos hover/activos */
+      transition: all 0.3s ease;
+    }
+
+    /* Efecto hover para el botón principal */
+    .boton-principal:hover {
+      background-color: #4e3e2e; /* Color más oscuro al pasar el ratón */
+      transform: translateY(-2px); /* Ligeramente hacia arriba */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* Sombra más pronunciada */
+    }
+
+    /* Estilos para el botón secundario (Iniciar sesión) - Color cambiado */
+    .boton-secundario {
+      background-color: var(--rosa-palido); /* Nuevo color más estético */
+      color: var(--gris); /* Color de texto que contraste bien */
+      transition: all 0.3s ease;
+      font-weight: 600; /* Un poco más de grosor en la fuente */
+    }
+
+    /* Efecto hover para el botón secundario */
+    .boton-secundario:hover {
+      background-color: #d6b8b7; /* Un tono más oscuro de rosa al pasar el ratón */
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    /* Estilos para las tarjetas de hospedaje */
+    .tarjeta {
+      background-color: white;
+      /* Transición para efectos hover */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Efecto hover para las tarjetas */
+    .tarjeta:hover {
+      transform: translateY(-5px); /* Ligeramente hacia arriba */
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* Sombra más pronunciada */
+    }
+
+    /* Estilos para el precio en las tarjetas */
+    .precio {
+      color: var(--dorado);
+    }
+
+    /* Estilos para la barra de navegación */
+    nav {
+      background-color: var(--marron);
+      /* Sombra mejorada para la barra de navegación */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Estilos para los enlaces de navegación */
+    .nav-link {
+      color: white;
+      font-weight: 500;
+      padding: 0.5rem 0.75rem; /* Aumento de padding para mejor área de clic */
+      border-radius: 0.5rem; /* Bordes redondeados */
+      transition: all 0.3s ease; /* Transición suave para todos los cambios */
+    }
+
+    /* Efecto hover para los enlaces de navegación */
+    .nav-link:hover {
+      color: var(--dorado); /* Mantiene el color dorado */
+      background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+      transform: scale(1.03); /* Ligeramente más grande */
+    }
+
+    /* Estilos para los botones de cantidad (+/-) */
+    .cantidad-btn {
+      background-color: #e2e8f0; /* bg-gray-200 */
+      color: var(--gris);
+      padding: 0.25rem 0.75rem; /* px-3 py-1 */
+      border-radius: 9999px; /* rounded-full */
+      font-size: 1.125rem; /* text-lg */
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      cursor: pointer; /* Indica que es clickeable */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem; /* Ancho mínimo para consistencia */
+      height: 2.25rem; /* Altura mínima para consistencia */
+    }
+
+    .cantidad-btn:hover {
+      background-color: #cbd5e0; /* bg-gray-300 */
+      transform: scale(1.05); /* Ligero efecto de escala */
+    }
+
+    /* Estilos para los select al enfocarse */
+    select:focus, input[type="text"]:focus { /* Ajustado para el campo de destino, aunque ahora no estará */
+      outline: none;
+      border-color: var(--marron);
+      box-shadow: 0 0 0 2px rgba(101, 82, 60, 0.5); /* Anillo de enfoque personalizado */
+    }
+
+    /* Estilos para el logo en el navbar */
+    .logo-navbar {
+      height: 60px; /* Ajustado el tamaño del logo */
+      width: auto; /* Mantiene la proporción */
+      max-width: 150px; /* Limita el ancho máximo del logo para pantallas pequeñas */
+    }
+
+    /* Responsive adjustments for the search box */
+    @media (max-width: 768px) {
+      .buscador {
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+      }
+      .buscador > div {
+        width: 100%; /* Make each input full width on smaller screens */
+      }
+      .buscador select, .buscador input[type="text"] {
+        width: 100%; /* Ensure inputs take full width */
+      }
+    }
+
+    /* Estilos para el footer */
+    .footer {
+      background-color: var(--marron);
+      color: white;
+    }
+
+    .footer a {
+      color: white;
+      transition: color 0.3s ease;
+    }
+
+    .footer a:hover {
+      color: var(--dorado);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="w-full px-6 py-4 flex justify-between items-center shadow-md">
+    <!-- Logo linkeable a la página principal -->
+    <a href="#" class="flex items-center">
+      <img src="/index.html/Untitled design (5).png"
+           alt="Logo Luz de la Cumbre"
+           onerror="this.onerror=null; this.src='https://placehold.co/200x50/65523C/FFFFFF?text=Logo+Cabañas';"
+           class="logo-navbar mr-2">
+    </a>
+    <div class="space-x-2 sm:space-x-4 text-sm flex items-center">
+      <a href="#" class="nav-link">Inicio</a>
+      <a href="#" class="nav-link">Cabañas</a>
+      <a href="#" class="nav-link">Galería</a>
+      <a href="#" class="nav-link">Nosotros</a>
+      <a href="#" class="nav-link">Reservas</a>
+      <button class="ml-4 px-4 py-2 rounded-lg boton-secundario text-sm shadow-md">Iniciar sesión</button>
+    </div>
+  </nav>
+
+  <header class="relative h-[36rem] bg-cover bg-center text-white shadow-lg">
+    <div class="bg-black bg-opacity-40 h-full w-full flex flex-col items-center justify-end p-8">
+      <div class="buscador rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-6 p-8 max-w-5xl w-full">
+
+        <!-- Campo de Fechas -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Fechas</label>
+          <select id="noches" class="border border-gray-300 rounded-md px-3 py-2 w-52">
+            <option>1 noche</option>
+            <option>2-3 noches</option>
+            <option>4-5 noches</option>
+            <option>6-7 noches</option>
+          </select>
+        </div>
+
+        <!-- Campo de Mes -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Mes</label>
+          <select id="mes" class="border border-gray-300 rounded-md px-3 py-2 w-52">
+            <option>Junio 2025</option>
+            <option>Julio 2025</option>
+            <option>Agosto 2025</option>
+            <option>Septiembre 2025</option>
+            <option>Octubre 2025</option>
+            <option>Noviembre 2025</option>
+          </select>
+        </div>
+
+        <!-- Campo de Adultos -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Adultos</label>
+          <div class="flex items-center gap-2">
+            <button onclick="cambiar('adultos', -1)" class="cantidad-btn">–</button>
+            <span id="adultos" class="text-base font-semibold w-6 text-center">2</span>
+            <button onclick="cambiar('adultos', 1)" class="cantidad-btn">+</button>
+          </div>
+        </div>
+
+        <!-- Campo de Niños -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Niños</label>
+          <div class="flex items-center gap-2">
+            <button onclick="cambiar('ninos', -1)" class="cantidad-btn">–</button>
+            <span id="ninos" class="text-base font-semibold w-6 text-center">0</span>
+            <button onclick="cambiar('ninos', 1)" class="cantidad-btn">+</button>
+          </div>
+        </div>
+
+        <button onclick="buscar()" class="boton-principal px-6 py-2 rounded-xl mt-2 font-semibold text-sm shadow-md">
+          Buscar hospedaje
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="max-w-6xl mx-auto mt-16 px-6">
+    <h2 class="text-3xl font-bold mb-8 text-[var(--marron)]">Hospedajes recomendados</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <!-- Tarjeta de ejemplo para Cabaña La Montaña -->
+      <div class="tarjeta rounded-xl shadow-md overflow-hidden">
+        <div class="h-48 bg-cover bg-center" style="background-image: url('https://source.unsplash.com/featured/?forest,mountain,cabaña');"></div>
+        <div class="p-5">
+          <h3 class="text-xl font-semibold mb-1">Cabaña La Montaña</h3>
+          <p class="text-sm text-gray-500 mb-2">San Martín de los Andes</p>
+          <p class="precio font-bold text-lg">AR$ 23.400</p>
+        </div>
+      </div>
+
+      <!-- Más tarjetas de hospedajes para que veas el estilo -->
+      <div class="tarjeta rounded-xl shadow-md overflow-hidden">
+        <div class="h-48 bg-cover bg-center" style="background-image: url('https://source.unsplash.com/featured/?cabin,woods,lake');"></div>
+        <div class="p-5">
+          <h3 class="text-xl font-semibold mb-1">Refugio del Bosque</h3>
+          <p class="text-sm text-gray-500 mb-2">Villa La Angostura</p>
+          <p class="precio font-bold text-lg">AR$ 28.000</p>
+        </div>
+      </div>
+
+      <div class="tarjeta rounded-xl shadow-md overflow-hidden">
+        <div class="h-48 bg-cover bg-center" style="background-image: url('https://source.unsplash.com/featured/?mountain,river,argentina');"></div>
+        <div class="p-5">
+          <h3 class="text-xl font-semibold mb-1">Amanecer Serrano</h3>
+          <p class="text-sm text-gray-500 mb-2">Mina Clavero</p>
+          <p class="precio font-bold text-lg">AR$ 19.900</p>
+        </div>
+      </div>
+
+      <div class="tarjeta rounded-xl shadow-md overflow-hidden">
+        <div class="h-48 bg-cover bg-center" style="background-image: url('https://source.unsplash.com/featured/?lake,patagonia,cabaña');"></div>
+        <div class="p-5">
+          <h3 class="text-xl font-semibold mb-1">Rincón Escondido</h3>
+          <p class="text-sm text-gray-500 mb-2">Bariloche</p>
+          <p class="precio font-bold text-lg">AR$ 32.000</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de Footer -->
+  <footer class="footer py-8 mt-16 text-center text-sm">
+    <div class="max-w-6xl mx-auto px-6">
+      <p>&copy; 2025 Cabañas Luz de la Cumbre. Todos los derechos reservados.</p>
+      <div class="mt-4 space-x-4">
+        <a href="#" class="hover:underline">Política de Privacidad</a>
+        <a href="#" class="hover:underline">Términos de Servicio</a>
+        <a href="#" class="hover:underline">Contacto</a>
+      </div>
+      <!-- Opcional: Iconos de redes sociales -->
+      <div class="mt-4 text-lg space-x-4">
+        <!-- Reemplaza con tus enlaces a redes sociales y sus iconos si los tienes -->
+        <!-- Ejemplo de un icono de Font Awesome (requiere incluir la librería de Font Awesome) -->
+        <!-- <a href="#" class="hover:text-gray-300"><i class="fab fa-facebook"></i></a> -->
+        <!-- <a href="#" class="hover:text-gray-300"><i class="fab fa-instagram"></i></a> -->
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Función para cambiar la cantidad de adultos o niños
+    function cambiar(id, valor) {
+      let el = document.getElementById(id);
+      let actual = parseInt(el.innerText);
+      let nuevo = Math.max(0, actual + valor); // Asegura que no sea negativo
+      el.innerText = nuevo;
+    }
+
+    // Función para simular la búsqueda (actualizada sin el campo de destino)
+    function buscar() {
+      const noches = document.getElementById("noches").value;
+      const mes = document.getElementById("mes").value;
+      const adultos = document.getElementById("adultos").innerText;
+      const ninos = document.getElementById("ninos").innerText;
+
+      alert(`Buscando hospedaje en ${mes}, por ${noches}, para ${adultos} adultos y ${ninos} niños.`);
+    }
+  </script>
+
+</body>
+</html>
