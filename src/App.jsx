@@ -6,6 +6,9 @@ import { ProtectedRoute } from './routes/protectedRoute'
 import { AdminPage } from './pages/adminPage'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+
 
 function App() {
   return (
