@@ -1,1 +1,1 @@
-export const API_URL = 'http://localhost:3000/api'; // URL base del backend
+export const API_URL = 'https://luzdelacumbre-back.onrender.com/api'; // URL base del backend
