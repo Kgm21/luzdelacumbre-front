@@ -290,11 +290,13 @@ function Reservas() {
               No se encontraron cabañas para los filtros seleccionados.
             </p>
           )}
-          <div className="grid grid-cols-1 gap-8">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
   {!cargando && !error && cabanasDisponibles.map(c => (
     <CardsCabanas key={c._id} cabana={c} />
   ))}
 </div>
+
+
 
         </section>
       </div>
