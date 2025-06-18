@@ -5,7 +5,7 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import './styles/reservas.css';
 import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseUrl = 'https://luzdelacumbre-back.onrender.com';
 import CardsCabanas from '../components/cabañas/listadeCabanias';
 
 function Reservas() {
@@ -290,13 +290,12 @@ function Reservas() {
               No se encontraron cabañas para los filtros seleccionados.
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {!cargando &&
-              !error &&
-              cabanasDisponibles.map((cabana) => (
-                <CardsCabanas key={cabana._id} cabana={cabana} />
-              ))}
-          </div>
+          <div className="grid grid-cols-1 gap-8">
+  {!cargando && !error && cabanasDisponibles.map(c => (
+    <CardsCabanas key={c._id} cabana={c} />
+  ))}
+</div>
+
         </section>
       </div>
     </>
