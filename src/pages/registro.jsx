@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Form, Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import "./styles/registro.css"; // Asegúrate de crear este archivo para estilos
+import "./styles/auth.css"; // Asegúrate de crear este archivo para estilos
 import { API_URL } from '../CONFIG/api'; // Importa la constante
 
 const Registro = () => {
@@ -116,7 +116,7 @@ const Registro = () => {
   };
 
   return (
-    <Container className="container">
+    <Container className="auth-wrapper">
       <Row className="d-flex justify-content-start">
         <Col md={4}>
           <div className="form-container">
@@ -213,7 +213,7 @@ const Registro = () => {
             <div className="text-center mt-3">
               <p className="form-label">
                 ¿Ya tienes cuenta?{" "}
-                <Link to="/iniciar-sesion" className="text-decoration-none">
+                <Link to="/login" className="text-decoration-none">
                   Inicia sesión aquí
                 </Link>
               </p>

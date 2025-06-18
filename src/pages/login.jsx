@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { Form, Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "./styles/login.css";
+import "./styles/auth.css";
 
 const LoginPage = ({ setUsuarioAutenticado }) => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
   };
 
   return (
-    <Container className="container">
+    <Container className="auth-wrapper">
       <Row className="d-flex justify-content-start">
         <Col md={4}>
           <div className="form-container">

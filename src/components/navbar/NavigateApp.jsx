@@ -29,52 +29,33 @@ const NavigateApp = ({ setUsuarioAutenticado }) => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="ms-auto me-6">
-            {auth.isAuthenticated ? (
-              <>
-                <Nav.Link as={Link} to="/" className="nav-link-custom">
-                  Inicio
-                </Nav.Link>
-                <Nav.Link as={Link} to="/reservas" className="nav-link-custom">
-                  Cabañas
-                </Nav.Link>
-                <Nav.Link as={Link} to="/about" className="nav-link-custom">
-                  Nosotros
-                </Nav.Link>
-                <Nav.Link as={Link} to="/contactos" className="nav-link-custom">
-                  Contacto
-                </Nav.Link>
-                {auth.role === "admin" && (
-                  <Nav.Link
-                    as={Link}
-                    to="/administracion"
-                    className="nav-link-custom"
-                  >
-                    Administración
-                  </Nav.Link>
-                )}
-                <Nav.Link onClick={handleLogout} className="nav-link-custom">
-                  Cerrar Sesión
-                </Nav.Link>
-              </>
-            ) : (
-              <>
-                <Nav.Link as={Link} to="/" className="nav-link-custom">
-                  Inicio
-                </Nav.Link>
-                <Nav.Link as={Link} to="/about" className="nav-link-custom">
-                  Nosotros
-                </Nav.Link>
-                <Nav.Link
-                  as={Link}
-                  to="/login"
-                  className="nav-link-custom"
-                  data-special
-                >
-                  Login
-                </Nav.Link>
-              </>
-            )}
-          </Nav>
+  {/* Botones visibles para todos */}
+  <Nav.Link as={Link} to="/" className="nav-link-custom">Inicio</Nav.Link>
+  <Nav.Link as={Link} to="/cabanias" className="nav-link-custom">Cabañas</Nav.Link>
+  <Nav.Link as={Link} to="/about" className="nav-link-custom">Nosotros</Nav.Link>
+  <Nav.Link as={Link} to="/contactos" className="nav-link-custom">Contacto</Nav.Link>
+ <Nav.Link as={Link} to="/reservas" className="nav-link-custom">Reservas</Nav.Link>
+
+  {/* Botón Administración solo para admin autenticado */}
+  {auth.isAuthenticated && auth.role === "admin" && (
+    <Nav.Link as={Link} to="/administracion" className="nav-link-custom">
+      Administración
+    </Nav.Link>
+  )}
+
+  {/* Si está autenticado, mostrar botón cerrar sesión */}
+  {auth.isAuthenticated ? (
+    <Nav.Link onClick={handleLogout} className="nav-link-custom">
+      Cerrar Sesión
+    </Nav.Link>
+  ) : (
+    // Si no está autenticado, mostrar botón Login
+    <Nav.Link as={Link} to="/login" className="nav-link-custom" data-special>
+      Login
+    </Nav.Link>
+  )}
+</Nav>
+
         </Navbar.Collapse>
       </Container>
     </Navbar>
