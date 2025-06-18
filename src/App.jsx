@@ -16,7 +16,8 @@ import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import Cabanias  from './pages/cabanias';
-import Galeria  from './pages/galeria';
+import Reservas from "./pages/reservas";
+
 
 function App() {
   const [usuarioAutenticado, setUsuarioAutenticado] = useState(false);
@@ -33,9 +34,9 @@ function App() {
               <Route path="/login" element={<LoginPage setUsuarioAutenticado={setUsuarioAutenticado} />} />
               <Route path="/registro" element={<Registro />} />
               <Route path="/contactos" element={<Contactos />} />
-              <Route path="/reservas" element={<CardsCabanas />} />
+              <Route path="/reservas" element={<Reservas />} />
               <Route path='/cabanias' element={<Cabanias/>}></Route>
-            <Route path='/galeria' element={<Galeria/>}></Route>
+            
             <Route
                 path="/administracion"
                 element={

@@ -1,147 +1,306 @@
-import React, { useState } from 'react';
-import "./styles/reservas.css";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { DateRange } from 'react-date-range';
+import { format, differenceInDays } from 'date-fns';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
+import './styles/reservas.css';
+import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+import CardsCabanas from '../components/cabañas/listadeCabanias';
 
-function CardsCabanas() {
-  const [adultos, setAdultos] = useState(2);
+function Reservas() {
+  console.log('Base URL:', baseUrl);
+
+  const [adultos, setAdultos] = useState(1);
   const [ninos, setNinos] = useState(0);
-  const [noches, setNoches] = useState('1 noche');
-  const [mes, setMes] = useState('Junio 2025');
+  const [habitaciones, setHabitaciones] = useState(1);
+  const [codigoPromocional, setCodigoPromocional] = useState('');
+  const [mostrarCalendario, setMostrarCalendario] = useState(false);
+  const [mostrarHuespedes, setMostrarHuespedes] = useState(false);
+  const [cabanasDisponibles, setCabanasDisponibles] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+
+  const calendarioRef = useRef(null);
+  const huespedesRef = useRef(null);
+  const searchBarRef = useRef(null);
+
+  const MIN_NIGHTS = 5; // Igual que en el backend
+
+  useEffect(() => {
+    const manejarClickAfuera = (e) => {
+      if (
+        calendarioRef.current &&
+        !calendarioRef.current.contains(e.target) &&
+        !e.target.closest('.search-bar-item div[onClick*="setMostrarCalendario"]') &&
+        !e.target.closest('.rdrDateRangeWrapper')
+      ) {
+        setMostrarCalendario(false);
+      }
+      if (
+        huespedesRef.current &&
+        !huespedesRef.current.contains(e.target) &&
+        !e.target.closest('.search-bar-item div[onClick*="setMostrarHuespedes"]')
+      ) {
+        setMostrarHuespedes(false);
+      }
+    };
+
+    document.addEventListener('mousedown', manejarClickAfuera);
+    return () => {
+      document.removeEventListener('mousedown', manejarClickAfuera);
+    };
+  }, []);
+
+  const [rangoFecha, setRangoFecha] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(new Date().setDate(new Date().getDate() + MIN_NIGHTS)), // Ajustar fecha inicial
+      key: 'selection',
+    },
+  ]);
 
   const cambiarCantidad = (tipo, valor) => {
     if (tipo === 'adultos') {
-      setAdultos(prev => Math.max(0, prev + valor));
+      setAdultos((prev) => Math.max(1, prev + valor));
     } else if (tipo === 'ninos') {
-      setNinos(prev => Math.max(0, prev + valor));
+      setNinos((prev) => Math.max(0, prev + valor));
+    } else if (tipo === 'habitaciones') {
+      setHabitaciones((prev) => Math.max(1, prev + valor));
     }
   };
+
+  const fetchCabanas = useCallback(async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      const start = rangoFecha[0].startDate;
+      const end = rangoFecha[0].endDate;
+
+      // Validar fechas en el frontend
+      if (end <= start) {
+        setError('La fecha de salida debe ser posterior a la fecha de llegada.');
+        setCabanasDisponibles([]);
+        return;
+      }
+
+      const nights = differenceInDays(end, start);
+      if (nights < MIN_NIGHTS) {
+        setError(`La reserva debe ser de al menos ${MIN_NIGHTS} noches.`);
+        setCabanasDisponibles([]);
+        return;
+      }
+
+      // Validar totalGuests
+      const totalGuests = adultos + ninos;
+      if (totalGuests < 1 || totalGuests > 6) {
+        setError('La cantidad de pasajeros debe estar entre 1 y 6.');
+        setCabanasDisponibles([]);
+        return;
+      }
+
+      const formattedStartDate = format(start, 'yyyy-MM-dd');
+      const formattedEndDate = format(end, 'yyyy-MM-dd');
+
+      const apiUrl = `${baseUrl}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
+
+      console.log('Fetching from:', apiUrl);
+
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+        console.log('Error data:', errorData);
+        throw new Error(errorData.message || response.statusText);
+      }
+
+      const data = await response.json();
+      console.log('Datos recibidos:', data);
+      setCabanasDisponibles(data);
+      console.log('cabanasDisponibles actualizado:', data);
+    } catch (e) {
+      console.error('Error al obtener cabañas:', e);
+      setError(`No se pudieron cargar las cabañas: ${e.message}. Inténtalo de nuevo.`);
+      setCabanasDisponibles([]);
+    } finally {
+      setCargando(false);
+    }
+  }, [rangoFecha, adultos, ninos, baseUrl]);
+
+  useEffect(() => {
+    fetchCabanas();
+  }, [fetchCabanas]);
 
   const buscarHospedaje = () => {
-    alert(`Buscando hospedaje en ${mes}, por ${noches}, para ${adultos} adultos y ${ninos} niños.`);
+    fetchCabanas();
+    const inicio = format(rangoFecha[0].startDate, 'dd MMM');
+    const fin = format(rangoFecha[0].endDate, 'dd MMM');
+    console.log(
+      `Buscando hospedaje del ${inicio} al ${fin}, para ${adultos} adultos, ${ninos} niños y ${habitaciones} habitación(es). Código promocional: ${codigoPromocional}`
+    );
   };
-
-  const cabanas = [
-    {
-      nombre: 'Cabaña La Montaña',
-      ubicacion: 'San Martín de los Andes',
-      precio: 'AR$ 23.400',
-      imagen: 'https://source.unsplash.com/featured/?forest,mountain,cabaña'
-    },
-    {
-      nombre: 'Refugio del Bosque',
-      ubicacion: 'Villa La Angostura',
-      precio: 'AR$ 28.000',
-      imagen: 'https://source.unsplash.com/featured/?cabin,woods,lake'
-    },
-    {
-      nombre: 'Amanecer Serrano',
-      ubicacion: 'Mina Clavero',
-      precio: 'AR$ 19.900',
-      imagen: 'https://source.unsplash.com/featured/?mountain,river,argentina'
-    },
-    {
-      nombre: 'Rincón Escondido',
-      ubicacion: 'Bariloche',
-      precio: 'AR$ 32.000',
-      imagen: 'https://source.unsplash.com/featured/?lake,patagonia,cabaña'
-    }
-  ];
 
   return (
     <>
-     
-
-      {/* Header con buscador */}
       <header
-        className="relative h-[36rem] bg-cover bg-center text-white shadow-lg"
-        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80')` }}
+        className="relative h-[36rem] bg-cover bg-center text-white shadow-lg flex flex-col items-center justify-center p-8"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80')`,
+        }}
       >
-        <div className="bg-black bg-opacity-40 h-full w-full flex flex-col items-center justify-end p-8">
-          <div className="buscador rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-6 p-8 max-w-5xl w-full bg-white text-black">
-            {/* Fechas */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Fechas</label>
-              <select
-                className="border border-gray-300 rounded-md px-3 py-2 w-52"
-                value={noches}
-                onChange={(e) => setNoches(e.target.value)}
-              >
-                <option>1 noche</option>
-                <option>2-3 noches</option>
-                <option>4-5 noches</option>
-                <option>6-7 noches</option>
-              </select>
-            </div>
-
-            {/* Mes */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Mes</label>
-              <select
-                className="border border-gray-300 rounded-md px-3 py-2 w-52"
-                value={mes}
-                onChange={(e) => setMes(e.target.value)}
-              >
-                <option>Junio 2025</option>
-                <option>Julio 2025</option>
-                <option>Agosto 2025</option>
-                <option>Septiembre 2025</option>
-                <option>Octubre 2025</option>
-                <option>Noviembre 2025</option>
-              </select>
-            </div>
-
-            {/* Adultos */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Adultos</label>
-              <div className="flex items-center gap-2">
-                <button onClick={() => cambiarCantidad('adultos', -1)} className="cantidad-btn">–</button>
-                <span className="text-base font-semibold w-6 text-center">{adultos}</span>
-                <button onClick={() => cambiarCantidad('adultos', 1)} className="cantidad-btn">+</button>
-              </div>
-            </div>
-
-            {/* Niños */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Niños</label>
-              <div className="flex items-center gap-2">
-                <button onClick={() => cambiarCantidad('ninos', -1)} className="cantidad-btn">–</button>
-                <span className="text-base font-semibold w-6 text-center">{ninos}</span>
-                <button onClick={() => cambiarCantidad('ninos', 1)} className="cantidad-btn">+</button>
-              </div>
-            </div>
-
-            <button
-              onClick={buscarHospedaje}
-              className="boton-principal px-6 py-2 rounded-xl mt-2 font-semibold text-sm shadow-md"
+        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div className="relative z-10 text-center mb-8">
+          <h1 className="text-5xl font-bold mb-2">¡Reserva Ahora!</h1>
+          <p className="text-xl">El mejor precio, sólo en nuestro sitio oficial, garantizado.</p>
+        </div>
+        <div className="search-bar-container" ref={searchBarRef}>
+          <div className="search-bar-item">
+            <label>Llegada</label>
+            <div
+              className="search-bar-input flex items-center justify-between"
+              onClick={() => {
+                setMostrarCalendario(!mostrarCalendario);
+                setMostrarHuespedes(false);
+              }}
             >
-              Buscar hospedaje
-            </button>
+              <span>{format(rangoFecha[0].startDate, 'dd/MM/yyyy')}</span>
+              <FaCalendarAlt className="text-gray-400" />
+            </div>
+            {mostrarCalendario && (
+              <div ref={calendarioRef}>
+                <DateRange
+                  editableDateInputs={true}
+                  onChange={(item) => setRangoFecha([item.selection])}
+                  moveRangeOnFirstSelection={false}
+                  ranges={rangoFecha}
+                  minDate={new Date()} // Evitar fechas pasadas
+                />
+              </div>
+            )}
           </div>
+          <div className="search-bar-item">
+            <label>Salida</label>
+            <div
+              className="search-bar-input flex items-center justify-between"
+              onClick={() => {
+                setMostrarCalendario(!mostrarCalendario);
+                setMostrarHuespedes(false);
+              }}
+            >
+              <span>{format(rangoFecha[0].endDate, 'dd/MM/yyyy')}</span>
+              <FaCalendarAlt className="text-gray-400" />
+            </div>
+          </div>
+          <div className="search-bar-item">
+            <label>Huéspedes</label>
+            <div
+              className="search-bar-input flex items-center justify-between"
+              onClick={() => {
+                setMostrarHuespedes(!mostrarHuespedes);
+                setMostrarCalendario(false);
+              }}
+            >
+              <span>{`${adultos} adultos, ${ninos} niños, ${habitaciones} habitación`}</span>
+              <FaUserFriends className="text-gray-400" />
+            </div>
+            {mostrarHuespedes && (
+              <div
+                className="absolute top-full left-0 mt-2 p-4 bg-white shadow-lg rounded-lg huespedes-popover"
+                ref={huespedesRef}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span>Adultos</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => cambiarCantidad('adultos', -1)} className="cantidad-btn">
+                      –
+                    </button>
+                    <span>{adultos}</span>
+                    <button onClick={() => cambiarCantidad('adultos', 1)} className="cantidad-btn">
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span>Niños</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => cambiarCantidad('ninos', -1)} className="cantidad-btn">
+                      –
+                    </button>
+                    <span>{ninos}</span>
+                    <button onClick={() => cambiarCantidad('ninos', 1)} className="cantidad-btn">
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Habitaciones</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => cambiarCantidad('habitaciones', -1)} className="cantidad-btn">
+                      –
+                    </button>
+                    <span>{habitaciones}</span>
+                    <button onClick={() => cambiarCantidad('habitaciones', 1)} className="cantidad-btn">
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+         
+          <button
+            onClick={buscarHospedaje}
+            className="boton-ver-tarifas flex items-center justify-center gap-2"
+          >
+            Ver Tarifas
+            <FaSearch className="search-icon" />
+          </button>
         </div>
       </header>
-
-      {/* Hospedajes Recomendados */}
-      <section className="max-w-6xl mx-auto mt-16 px-6">
-        <h2 className="text-3xl font-bold mb-8 text-[var(--marron)]">Hospedajes recomendados</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {cabanas.map((cabana, index) => (
-            <div key={index} className="tarjeta rounded-xl shadow-md overflow-hidden bg-white">
-              <div
-                className="h-48 bg-cover bg-center"
-                style={{ backgroundImage: `url('${cabana.imagen}')` }}
-              ></div>
-              <div className="p-5">
-                <h3 className="text-xl font-semibold mb-1">{cabana.nombre}</h3>
-                <p className="text-sm text-gray-500 mb-2">{cabana.ubicacion}</p>
-                <p className="precio font-bold text-lg">{cabana.precio}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+      <section className="max-w-6xl mx-auto mt-8 px-6 text-center">
+        <h2 className="text-2xl font-bold mb-8 text-[var(--marron)]">
+          Vouchers seleccionados especialmente para usted
+        </h2>
       </section>
-
-      
+      <div className="reservas-main-content">
+        <section className="max-w-6xl mx-auto px-6 w-full mt-0">
+          <h2 className="text-3xl font-bold mb-8 text-[var(--marron)] text-center">
+            Hospedajes recomendados
+          </h2>
+          {cargando && <p className="text-center text-xl text-gray-700">Cargando cabañas...</p>}
+          {error && (
+            <div className="text-center">
+              <p className="text-xl text-red-600">{error}</p>
+              <button
+                onClick={fetchCabanas}
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
+          {!cargando && !error && cabanasDisponibles.length === 0 && (
+            <p className="text-center text-xl text-gray-700">
+              No se encontraron cabañas para los filtros seleccionados.
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {!cargando &&
+              !error &&
+              cabanasDisponibles.map((cabana) => (
+                <CardsCabanas key={cabana._id} cabana={cabana} />
+              ))}
+          </div>
+        </section>
+      </div>
     </>
   );
 }
 
-export default CardsCabanas;
+export default Reservas;
