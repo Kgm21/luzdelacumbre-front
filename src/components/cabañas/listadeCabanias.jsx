@@ -70,7 +70,7 @@ function CardsCabanas({ cabana }) {
         <div className="pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-500 mb-0.5">Tarifas desde</p>
           <p className="text-lg font-bold text-blue-700 mb-2">
-            USD ${cabana.totalPrice} <span className="text-xs text-gray-500">+IVA</span>
+            USD ${cabana.price} / noche <span className="text-xs text-gray-500">+IVA</span>
           </p>
           <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 rounded-md transition-colors duration-200 text-sm">
             Ver Tarifas
