@@ -1,12 +1,10 @@
-import { HomePage } from "./homepage";
-import { AboutUs } from "./aboutus";
-import { LoginPage } from "./login";
-import { AdminPage } from "./adminPage";
-import {CardsCabañas} from './reservas'
-import { Error404 } from "./error404";
+export { default as HomePage } from './homepage';
+export { default as AboutUs } from './aboutus';
+export { default as LoginPage } from './login';
+export { default as Error404 } from './error404';
+export { default as Contactos } from './contactos';
+export { default as Reservas } from './reservas';
+export{ default as Cabanias} from './cabanias'
+export{ default as Galeria} from './galeria'
+export { default as AdminPage } from './adminPage';
 
-export{
-    HomePage, AboutUs,Error404,LoginPage, AdminPage, CardsCabañas 
-
-
-}

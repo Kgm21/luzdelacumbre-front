@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 
-export const Error404 = () => {
-  return (
-    <div>E</div>
-  )
-}
+const Error404 = () => {
+  return <h1>404 - Página No Encontrada</h1>;
+};
+
+export default Error404;

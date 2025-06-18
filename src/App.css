@@ -1,0 +1,172 @@
+
+    /* Paleta de Colores */
+    :root {
+      --marron: #65523c;
+      --beige: #FAF3E0;
+      --verde: #3C6E47;
+      --gris: #1E1E1E;
+      --dorado: #ccb648;
+      --rosa-palido: #eecfce; /* Nuevo color para el botón de iniciar sesión */
+      --gris-oscuro-transparente: rgba(30, 30, 30, 0.8); /* Para el logo, si se superpone */
+    }
+
+    /* Estilos globales del cuerpo */
+    body {
+      background-color: var(--beige);
+      color: var(--gris);
+      font-family: 'Inter', sans-serif; /* Fuente para el cuerpo del texto */
+    }
+
+    /* Estilos para títulos h1, h2, h3 */
+    h1, h2, h3 {
+      font-family: 'Lora', serif; /* Nueva fuente para títulos */
+    }
+
+    /* Estilos para el encabezado con imagen de fondo */
+    header {
+      background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80');
+    }
+
+    /* Estilos para el contenedor del buscador */
+    .buscador {
+      background-color: white;
+      color: var(--gris);
+    }
+
+    /* Estilos para el botón principal (Buscar hospedaje) */
+    .boton-principal {
+      background-color: var(--marron);
+      color: white;
+      /* Transición para efectos hover/activos */
+      transition: all 0.3s ease;
+    }
+
+    /* Efecto hover para el botón principal */
+    .boton-principal:hover {
+      background-color: #4e3e2e; /* Color más oscuro al pasar el ratón */
+      transform: translateY(-2px); /* Ligeramente hacia arriba */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* Sombra más pronunciada */
+    }
+
+    /* Estilos para el botón secundario (Iniciar sesión) - Color cambiado */
+    .boton-secundario {
+      background-color: var(--rosa-palido); /* Nuevo color más estético */
+      color: var(--gris); /* Color de texto que contraste bien */
+      transition: all 0.3s ease;
+      font-weight: 600; /* Un poco más de grosor en la fuente */
+    }
+
+    /* Efecto hover para el botón secundario */
+    .boton-secundario:hover {
+      background-color: #d6b8b7; /* Un tono más oscuro de rosa al pasar el ratón */
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    /* Estilos para las tarjetas de hospedaje */
+    .tarjeta {
+      background-color: white;
+      /* Transición para efectos hover */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Efecto hover para las tarjetas */
+    .tarjeta:hover {
+      transform: translateY(-5px); /* Ligeramente hacia arriba */
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* Sombra más pronunciada */
+    }
+
+    /* Estilos para el precio en las tarjetas */
+    .precio {
+      color: var(--dorado);
+    }
+
+    /* Estilos para la barra de navegación */
+    nav {
+      background-color: var(--marron);
+      /* Sombra mejorada para la barra de navegación */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Estilos para los enlaces de navegación */
+    .nav-link {
+      color: white;
+      font-weight: 500;
+      padding: 0.5rem 0.75rem; /* Aumento de padding para mejor área de clic */
+      border-radius: 0.5rem; /* Bordes redondeados */
+      transition: all 0.3s ease; /* Transición suave para todos los cambios */
+    }
+
+    /* Efecto hover para los enlaces de navegación */
+    .nav-link:hover {
+      color: var(--dorado); /* Mantiene el color dorado */
+      background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+      transform: scale(1.03); /* Ligeramente más grande */
+    }
+
+    /* Estilos para los botones de cantidad (+/-) */
+    .cantidad-btn {
+      background-color: #e2e8f0; /* bg-gray-200 */
+      color: var(--gris);
+      padding: 0.25rem 0.75rem; /* px-3 py-1 */
+      border-radius: 9999px; /* rounded-full */
+      font-size: 1.125rem; /* text-lg */
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      cursor: pointer; /* Indica que es clickeable */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem; /* Ancho mínimo para consistencia */
+      height: 2.25rem; /* Altura mínima para consistencia */
+    }
+
+    .cantidad-btn:hover {
+      background-color: #cbd5e0; /* bg-gray-300 */
+      transform: scale(1.05); /* Ligero efecto de escala */
+    }
+
+    /* Estilos para los select al enfocarse */
+    select:focus, input[type="text"]:focus { /* Ajustado para el campo de destino, aunque ahora no estará */
+      outline: none;
+      border-color: var(--marron);
+      box-shadow: 0 0 0 2px rgba(101, 82, 60, 0.5); /* Anillo de enfoque personalizado */
+    }
+
+    /* Estilos para el logo en el navbar */
+    .logo-navbar {
+      height: 70px;
+      width: auto; /* Mantiene la proporción */
+      max-width: 150px; /* Limita el ancho máximo del logo para pantallas pequeñas */
+    }
+
+    /* Responsive adjustments for the search box */
+    @media (max-width: 768px) {
+      .buscador {
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+      }
+      .buscador > div {
+        width: 100%; /* Make each input full width on smaller screens */
+      }
+      .buscador select, .buscador input[type="text"] {
+        width: 100%; /* Ensure inputs take full width */
+      }
+    }
+
+    /* Estilos para el footer */
+    .footer {
+      background-color: var(--marron);
+      color: white;
+    }
+
+    .footer a {
+      color: white;
+      transition: color 0.3s ease;
+    }
+
+    .footer a:hover {
+      color: var(--dorado);
+    }
+ 
+   
