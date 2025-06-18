@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import "./styles/login.css"
-import { API_URL } from '../CONFIG/api'; // Importa la constante
+import "./styles/login.css";
+import { API_URL } from '../CONFIG/api';
 
 
 const LoginPage = ({ setUsuarioAutenticado }) => {
- const navigate = useNavigate();
- const [email, setEmail] = useState(""); // Cambiado de usuario a email
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -31,7 +31,7 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
         body: JSON.stringify({ email, password }),
       });
 
-       if (!response.ok) {
+      if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Credenciales inválidas');
       }
@@ -39,17 +39,17 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
       const data = await response.json();
       console.log('Respuesta del backend:', data);
 
-       if (data.message === 'Inicio de sesión exitoso') {
+      if (data.message === 'Inicio de sesión exitoso') {
         if (setUsuarioAutenticado) {
-          setUsuarioAutenticado(true); // Actualiza el estado de autenticación
+          setUsuarioAutenticado(true);
         }
 
-         // Guardar token en memoria (puedes usar un contexto o estado global)
-        const token = data.token;
-        const role = data.user.role;
+        // Guardar token en localStorage o estado global según tu arquitectura
+        localStorage.setItem("role", data.user.role);
+        localStorage.setItem("usuario", data.user.email);
 
-        if (role === "admin") {
-          navigate("/administracion");
+        if (data.user.role === "admin") {
+          navigate("/admin");
         } else {
           navigate("/home");
         }

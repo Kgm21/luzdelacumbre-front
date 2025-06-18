@@ -14,6 +14,8 @@ import { ProtectedRoute } from './routes/protectedRoute';
 import { useState } from 'react'; 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import Cabanias  from './pages/cabanias';
+import Galeria  from './pages/galeria';
 
 function App() {
   const [usuarioAutenticado, setUsuarioAutenticado] = useState(false);
@@ -30,6 +32,8 @@ function App() {
             <Route path="/registro" element={<Registro />} />
             <Route path="/contactos" element={<Contactos />} />
             <Route path="/reservas" element={<CardsCabanas />} />
+            <Route path='/cabanias' element={<Cabanias/>}></Route>
+            <Route path='/galeria' element={<Galeria/>}></Route>
             <Route
               path="/admin"
               element={

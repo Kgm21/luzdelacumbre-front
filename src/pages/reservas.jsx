@@ -1,91 +1,147 @@
-import React from 'react';
+import React, { useState } from 'react';
+import "./styles/reservas.css";
 
-export const CardsCabanas= () => {
+function CardsCabanas() {
+  const [adultos, setAdultos] = useState(2);
+  const [ninos, setNinos] = useState(0);
+  const [noches, setNoches] = useState('1 noche');
+  const [mes, setMes] = useState('Junio 2025');
+
+  const cambiarCantidad = (tipo, valor) => {
+    if (tipo === 'adultos') {
+      setAdultos(prev => Math.max(0, prev + valor));
+    } else if (tipo === 'ninos') {
+      setNinos(prev => Math.max(0, prev + valor));
+    }
+  };
+
+  const buscarHospedaje = () => {
+    alert(`Buscando hospedaje en ${mes}, por ${noches}, para ${adultos} adultos y ${ninos} niños.`);
+  };
+
+  const cabanas = [
+    {
+      nombre: 'Cabaña La Montaña',
+      ubicacion: 'San Martín de los Andes',
+      precio: 'AR$ 23.400',
+      imagen: 'https://source.unsplash.com/featured/?forest,mountain,cabaña'
+    },
+    {
+      nombre: 'Refugio del Bosque',
+      ubicacion: 'Villa La Angostura',
+      precio: 'AR$ 28.000',
+      imagen: 'https://source.unsplash.com/featured/?cabin,woods,lake'
+    },
+    {
+      nombre: 'Amanecer Serrano',
+      ubicacion: 'Mina Clavero',
+      precio: 'AR$ 19.900',
+      imagen: 'https://source.unsplash.com/featured/?mountain,river,argentina'
+    },
+    {
+      nombre: 'Rincón Escondido',
+      ubicacion: 'Bariloche',
+      precio: 'AR$ 32.000',
+      imagen: 'https://source.unsplash.com/featured/?lake,patagonia,cabaña'
+    }
+  ];
+
   return (
-    <div className="bg-light py-5 min-vh-100">
-      <div className="container">
-        <div className="card shadow rounded-4 overflow-hidden mx-auto" style={{ maxWidth: '600px' }}>
-          
-          {/* Carrusel */}
-          <div id="cabanaCarousel" className="carousel slide" data-bs-ride="carousel">
-            <div className="carousel-inner">
-              <div className="carousel-item active">
-                <img
-                  src="https://www.barilochehoy.com/wp-content/uploads/2019/07/cabanas-e1563289993505.jpg"
-                  className="d-block w-100"
-                  alt="Cabaña 1"
-                  style={{ height: '260px', objectFit: 'cover' }}
-                />
-              </div>
-              <div className="carousel-item">
-                <img
-                  src="https://www.patagoniasinfronteras.com/fotos/accesibles_m.jpg?1537400227387"
-                  className="d-block w-100"
-                  alt="Cabaña 2"
-                  style={{ height: '260px', objectFit: 'cover' }}
-                />
-              </div>
-              <div className="carousel-item">
-                <img
-                  src="https://cabañasenbariloche.com/wp-content/uploads/mejores-cabanas-en-bariloche-las-marias-de-nahuel-3.jpg"
-                  className="d-block w-100"
-                  alt="Cabaña 3"
-                  style={{ height: '260px', objectFit: 'cover' }}
-                />
-              </div>
-              <div className="carousel-item">
-                <img
-                  src="https://cabañasbariloche.com.ar/images/cabanas/cabanas-villa-labrador/cabanas-villa-labrador-bariloche.jpg"
-                  className="d-block w-100"
-                  alt="Cabaña 4"
-                  style={{ height: '260px', objectFit: 'cover' }}
-                />
+    <>
+     
+
+      {/* Header con buscador */}
+      <header
+        className="relative h-[36rem] bg-cover bg-center text-white shadow-lg"
+        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80')` }}
+      >
+        <div className="bg-black bg-opacity-40 h-full w-full flex flex-col items-center justify-end p-8">
+          <div className="buscador rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-6 p-8 max-w-5xl w-full bg-white text-black">
+            {/* Fechas */}
+            <div>
+              <label className="block text-sm font-semibold mb-1">Fechas</label>
+              <select
+                className="border border-gray-300 rounded-md px-3 py-2 w-52"
+                value={noches}
+                onChange={(e) => setNoches(e.target.value)}
+              >
+                <option>1 noche</option>
+                <option>2-3 noches</option>
+                <option>4-5 noches</option>
+                <option>6-7 noches</option>
+              </select>
+            </div>
+
+            {/* Mes */}
+            <div>
+              <label className="block text-sm font-semibold mb-1">Mes</label>
+              <select
+                className="border border-gray-300 rounded-md px-3 py-2 w-52"
+                value={mes}
+                onChange={(e) => setMes(e.target.value)}
+              >
+                <option>Junio 2025</option>
+                <option>Julio 2025</option>
+                <option>Agosto 2025</option>
+                <option>Septiembre 2025</option>
+                <option>Octubre 2025</option>
+                <option>Noviembre 2025</option>
+              </select>
+            </div>
+
+            {/* Adultos */}
+            <div>
+              <label className="block text-sm font-semibold mb-1">Adultos</label>
+              <div className="flex items-center gap-2">
+                <button onClick={() => cambiarCantidad('adultos', -1)} className="cantidad-btn">–</button>
+                <span className="text-base font-semibold w-6 text-center">{adultos}</span>
+                <button onClick={() => cambiarCantidad('adultos', 1)} className="cantidad-btn">+</button>
               </div>
             </div>
 
-            {/* Botones del carrusel */}
-            <button className="carousel-control-prev" type="button" data-bs-target="#cabanaCarousel" data-bs-slide="prev">
-              <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span className="visually-hidden">Anterior</span>
+            {/* Niños */}
+            <div>
+              <label className="block text-sm font-semibold mb-1">Niños</label>
+              <div className="flex items-center gap-2">
+                <button onClick={() => cambiarCantidad('ninos', -1)} className="cantidad-btn">–</button>
+                <span className="text-base font-semibold w-6 text-center">{ninos}</span>
+                <button onClick={() => cambiarCantidad('ninos', 1)} className="cantidad-btn">+</button>
+              </div>
+            </div>
+
+            <button
+              onClick={buscarHospedaje}
+              className="boton-principal px-6 py-2 rounded-xl mt-2 font-semibold text-sm shadow-md"
+            >
+              Buscar hospedaje
             </button>
-            <button className="carousel-control-next" type="button" data-bs-target="#cabanaCarousel" data-bs-slide="next">
-              <span className="carousel-control-next-icon" aria-hidden="true"></span>
-              <span className="visually-hidden">Siguiente</span>
-            </button>
-
-            {/* Indicadores */}
-            <div className="carousel-indicators">
-              {[0, 1, 2, 3].map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  data-bs-target="#cabanaCarousel"
-                  data-bs-slide-to={i}
-                  className={i === 0 ? 'active' : ''}
-                  aria-current={i === 0 ? 'true' : undefined}
-                  aria-label={`Slide ${i + 1}`}
-                ></button>
-              ))}
-            </div>
-          </div>
-
-          {/* Info */}
-          <div className="card-body">
-            <h5 className="card-title">Cabaña para 3 personas</h5>
-            <p className="card-text text-muted">Cama matrimonial y de una plaza</p>
-            <div className="d-flex align-items-center mb-2">
-              <span className="badge bg-success me-2">9.3</span>
-              <span className="text-muted">Excelente (950 opiniones)</span>
-            </div>
-            <div className="text-muted text-decoration-line-through">AR$ 350.000</div>
-            <div className="fs-4 fw-bold text-dark">AR$ 280.000</div>
-            <p className="text-muted small mb-0">por noche · AR$ 140.000</p>
-            <p className="text-muted small">2-3 días (dos noches)</p>
           </div>
         </div>
-      </div>
-    </div>
+      </header>
+
+      {/* Hospedajes Recomendados */}
+      <section className="max-w-6xl mx-auto mt-16 px-6">
+        <h2 className="text-3xl font-bold mb-8 text-[var(--marron)]">Hospedajes recomendados</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {cabanas.map((cabana, index) => (
+            <div key={index} className="tarjeta rounded-xl shadow-md overflow-hidden bg-white">
+              <div
+                className="h-48 bg-cover bg-center"
+                style={{ backgroundImage: `url('${cabana.imagen}')` }}
+              ></div>
+              <div className="p-5">
+                <h3 className="text-xl font-semibold mb-1">{cabana.nombre}</h3>
+                <p className="text-sm text-gray-500 mb-2">{cabana.ubicacion}</p>
+                <p className="precio font-bold text-lg">{cabana.precio}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      
+    </>
   );
-};
+}
 
 export default CardsCabanas;

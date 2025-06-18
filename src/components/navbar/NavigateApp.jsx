@@ -1,22 +1,22 @@
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import "./navbar.css";
+import { useNavigate, Link } from 'react-router-dom';
+import { Container, Nav, Navbar } from 'react-bootstrap';
+import './navbar.css';
 
 function NavigateApp({ usuarioAutenticado, setUsuarioAutenticado }) {
     const navigate = useNavigate();
-    const [usuarioRol, setUsuarioRol] = useState(null); 
+    const [usuarioRol, setUsuarioRol] = useState(localStorage.getItem("role") || null);
 
     useEffect(() => {
-        const rolGuardado = localStorage.getItem("rol");
-        setUsuarioRol(rolGuardado);
-    }, [usuarioAutenticado]); 
+        const rolGuardado = localStorage.getItem("role");
+        if (rolGuardado !== usuarioRol) {
+            setUsuarioRol(rolGuardado);
+        }
+    }, [usuarioAutenticado]);
 
     const cerrarSesion = () => {
         localStorage.removeItem("usuario");
-        localStorage.removeItem("rol");
+        localStorage.removeItem("role");
         setUsuarioAutenticado(false);
         setUsuarioRol(null);
         navigate("/");
@@ -24,33 +24,44 @@ function NavigateApp({ usuarioAutenticado, setUsuarioAutenticado }) {
 
     return (
         <Navbar collapseOnSelect expand="lg" variant="dark" className="navbar-custom">
-            <Container id='container'> 
-                <Navbar.Brand className="navbar-brand-custom">
-                    <img src="/logoLuzdelaCumbre.jpeg" alt="Logo" width="160" height="160" className="navbar-brand-logo" />
+            <Container id="container">
+                <Navbar.Brand as={Link} to="/" className="navbar-brand-custom">
+                    <img
+                        src="/logo.jpg"
+                        alt="Logo"
+                        width="160"
+                        height="160"
+                        className="navbar-brand-logo"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://placehold.co/160x160/65523C/FFFFFF?text=Logo';
+                        }}
+                    />
                 </Navbar.Brand>
+
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                 <Navbar.Collapse id="responsive-navbar-nav">
-                    <Nav className="ms-auto me-6">
+                    <Nav className="ms-auto me-4">
+                        <Nav.Link as={Link} to="/" className="nav-link-custom">Inicio</Nav.Link>
+                        <Nav.Link as={Link} to="/cabanias" className="nav-link-custom">Cabañas</Nav.Link>
+                        <Nav.Link as={Link} to="/galeria" className="nav-link-custom">Galería</Nav.Link>
+                        <Nav.Link as={Link} to="/about" className="nav-link-custom">Nosotros</Nav.Link>
+                        <Nav.Link as={Link} to="/reservas" className="nav-link-custom">Reservas</Nav.Link>
+
+                        {usuarioAutenticado && usuarioRol === "admin" && (
+                            <Nav.Link as={Link} to="/adminPage" className="nav-link-custom">
+                                Administración
+                            </Nav.Link>
+                        )}
+
                         {usuarioAutenticado ? (
-                            <>
-                                <Nav.Link as={Link} to="/" className="nav-link-custom">inicio</Nav.Link>
-                                <Nav.Link as={Link} to="/reservas" className="nav-link-custom">cabañas</Nav.Link>
-                                <Nav.Link as={Link} to="/galeria" className="nav-link-custom">galeria</Nav.Link>
-                                <Nav.Link as={Link} to="/about" className="nav-link-custom">nosotros</Nav.Link>
-                                <Nav.Link as={Link} to="/reservas" className="nav-link-custom">reservas</Nav.Link>
-                                {usuarioRol === "admin" && (
-                                    <Nav.Link as={Link} to="/adminPage" className="nav-link-custom">
-                                        Administración
-                                    </Nav.Link>
-                                )}
-                                <Nav.Link onClick={cerrarSesion} className="nav-link-custom">Cerrar Sesión</Nav.Link>
-                            </>
+                            <Nav.Link onClick={cerrarSesion} className="nav-link-custom">
+                                Cerrar Sesión
+                            </Nav.Link>
                         ) : (
-                            <>
-                                <Nav.Link as={Link} to="/" className="nav-link-custom">inicio</Nav.Link>
-                                <Nav.Link as={Link} to="/about" className="nav-link-custom">nosotros</Nav.Link>
-                                <Nav.Link as={Link} to="/login" className="nav-link-custom" data-special>Login</Nav.Link>
-                            </>
+                            <Nav.Link as={Link} to="/login" className="nav-link-custom">
+                                Login
+                            </Nav.Link>
                         )}
                     </Nav>
                 </Navbar.Collapse>
