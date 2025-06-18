@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "./styles/auth.css"; // Asegúrate de crear este archivo para estilos
 import { API_URL } from '../CONFIG/api'; // Importa la constante
 
+
 const Registro = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({

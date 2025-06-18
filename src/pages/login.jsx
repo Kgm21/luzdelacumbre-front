@@ -3,9 +3,7 @@ import { Form, Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/auth.css";
-
-// NO RECOMENDADO: Hardcodeando la URL de la API directamente
-const BASE_API_URL = "https://luzdelacumbre-back.onrender.com";
+import {API_URL} from '../CONFIG/api';
 
 const LoginPage = ({ setUsuarioAutenticado }) => {
   const navigate = useNavigate();
@@ -21,7 +19,7 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
     e.preventDefault();
     try {
       // Usando la URL hardcodeada
-      const response = await fetch(`${BASE_API_URL}/api/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

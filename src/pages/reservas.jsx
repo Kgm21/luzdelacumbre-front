@@ -5,11 +5,11 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import './styles/reservas.css';
 import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
-const baseUrl = 'https://luzdelacumbre-back.onrender.com';
+import {API_URL} from '../CONFIG/api';
 import CardsCabanas from '../components/cabañas/listadeCabanias';
 
 function Reservas() {
-  console.log('Base URL:', baseUrl);
+  console.log('Base URL:', API_URL);
 
   const [adultos, setAdultos] = useState(1);
   const [ninos, setNinos] = useState(0);
@@ -102,7 +102,7 @@ function Reservas() {
       const formattedStartDate = format(start, 'yyyy-MM-dd');
       const formattedEndDate = format(end, 'yyyy-MM-dd');
 
-      const apiUrl = `${baseUrl}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
+      const apiUrl = `${API_URL}/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
 
       console.log('Fetching from:', apiUrl);
 
@@ -131,7 +131,7 @@ function Reservas() {
     } finally {
       setCargando(false);
     }
-  }, [rangoFecha, adultos, ninos, baseUrl]);
+  }, [rangoFecha, adultos, ninos, API_URL]);
 
   useEffect(() => {
     fetchCabanas();

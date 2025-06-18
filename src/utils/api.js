@@ -1,6 +1,6 @@
 export async function fetchCabanas() {
   try {
-    const response = await fetch('http://localhost:3000/api/rooms');
+    const response = await fetch('https://luzdelacumbre-back.onrender.com');
     if (!response.ok) {
       throw new Error('Error al obtener las cabañas');
     }
