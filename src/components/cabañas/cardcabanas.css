@@ -220,3 +220,24 @@ background-color: #e63946
     background-color: #c5303b; /* Cambio de hover más notable */
   }
 }
+@media (max-width: 767px) {
+  .card-cabanas {
+    min-height: auto;
+  }
+
+  .room-carousel {
+    height: auto;
+    aspect-ratio: 4 / 3; /* Mejor control de altura sin overflow */
+  }
+
+  .overlay-content {
+    position: absolute;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    padding: 1rem;
+    height: auto;
+    max-height: 50%;
+    overflow: hidden;
+  }
+}
+ 
