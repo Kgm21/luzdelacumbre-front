@@ -3,6 +3,7 @@ import { Form, Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/auth.css";
+import {API_URL} from '../CONFIG/api';
 
 const LoginPage = ({ setUsuarioAutenticado }) => {
   const navigate = useNavigate();
@@ -17,17 +18,24 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      // Usando la URL hardcodeada
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      if (!response.ok) throw new Error("Credenciales inválidas");
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Error desconocido" }));
+        throw new Error(errorData.message || "Credenciales inválidas");
+      }
+
       const data = await response.json();
-      login(data.token, data.user.role); // Guardar token y rol en el contexto
-      setUsuarioAutenticado(true); // Actualizar estado para el navbar
+      login(data.token, data.user.role);
+      setUsuarioAutenticado(true);
       navigate(data.user.role === "admin" ? "/administracion" : "/home");
     } catch (err) {
+      console.error("Error en el login:", err);
       setError(err.message);
     }
   };

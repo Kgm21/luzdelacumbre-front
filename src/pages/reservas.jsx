@@ -9,7 +9,7 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL;
 import CardsCabanas from '../components/cabanias/listadeCabanias';
 
 function Reservas() {
-  console.log('Base URL:', baseUrl);
+  console.log('Base URL:', API_URL);
 
   const [adultos, setAdultos] = useState(1);
   const [ninos, setNinos] = useState(0);
@@ -102,7 +102,7 @@ function Reservas() {
       const formattedStartDate = format(start, 'yyyy-MM-dd');
       const formattedEndDate = format(end, 'yyyy-MM-dd');
 
-      const apiUrl = `${baseUrl}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
+      const apiUrl = `${API_URL}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
 
       console.log('Fetching from:', apiUrl);
 
@@ -131,7 +131,7 @@ function Reservas() {
     } finally {
       setCargando(false);
     }
-  }, [rangoFecha, adultos, ninos, baseUrl]);
+  }, [rangoFecha, adultos, ninos, API_URL]);
 
   useEffect(() => {
     fetchCabanas();
@@ -290,13 +290,12 @@ function Reservas() {
               No se encontraron cabañas para los filtros seleccionados.
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {!cargando &&
-              !error &&
-              cabanasDisponibles.map((cabana) => (
-                <CardsCabanas key={cabana._id} cabana={cabana} />
-              ))}
-          </div>
+          <div className="grid grid-cols-1 gap-8">
+  {!cargando && !error && cabanasDisponibles.map(c => (
+    <CardsCabanas key={c._id} cabana={c} />
+  ))}
+</div>
+
         </section>
       </div>
     </>

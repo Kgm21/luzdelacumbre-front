@@ -1,0 +1,11 @@
+.cards-cabanas {
+  max-width: 700px; /* Match the image width more precisely if needed */
+}
+
+.cards-cabanas .carousel .slide img {
+  height: 100% !important; /* Ensure images fill the carousel */
+}
+
+.cards-cabanas .content {
+  padding: 1rem; /* Fine-tune padding */
+}
