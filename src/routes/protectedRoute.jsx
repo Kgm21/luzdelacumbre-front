@@ -1,19 +1,18 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useContext } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export const ProtectedRoute = ({ children }) => {
-  const role = localStorage.getItem('role');
+const ProtectedRoute = ({ children }) => {
+  const { auth } = useAuth();
 
-  if (!role) {
-    // No hay rol, redirige al login
-    return <Navigate to="/login" replace />;
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  if (auth.role !== "admin") {
+    return <Navigate to="/home" />;
   }
 
-  if (role !== 'admin') {
-    // No es admin, redirige a home o donde quieras
-    return <Navigate to="/" replace />;
-  }
-
-  // Es admin, deja pasar
   return children;
 };
+
+export default ProtectedRoute; // Asegúrate de que esté exportado
