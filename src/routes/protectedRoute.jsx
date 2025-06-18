@@ -1,8 +1,18 @@
-import React from 'react'
-import { Navigate } from 'react-router-dom'
+import React, { useContext } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export const ProtectedRoute = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem('user')) || null
+const ProtectedRoute = ({ children }) => {
+  const { auth } = useAuth();
 
-  return user ? children : <Navigate to="/" />
-}
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  if (auth.role !== "admin") {
+    return <Navigate to="/home" />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute; // Asegúrate de que esté exportado
