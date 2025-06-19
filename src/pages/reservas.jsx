@@ -6,7 +6,7 @@ import 'react-date-range/dist/theme/default.css';
 import './styles/reservas.css';
 import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
 import {API_URL} from '../CONFIG/api';
-import CardsCabanas from '../components/cabañas/listadeCabanias';
+import CardsCabanas from '../components/cabanias/listadeCabanias';
 
 function Reservas() {
   console.log('Base URL:', API_URL);
