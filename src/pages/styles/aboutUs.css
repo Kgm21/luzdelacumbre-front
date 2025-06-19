@@ -1,0 +1,13 @@
+body {
+  background-color: #1a2a44;
+  color: #65f0f0;
+}
+
+.bs_miembro_img img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+.titulo {
+  color: white;
+}
