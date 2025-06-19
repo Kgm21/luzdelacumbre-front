@@ -3,10 +3,9 @@ import { DateRange } from 'react-date-range';
 import { format, differenceInDays } from 'date-fns';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import { API_URL } from '../CONFIG/api'; // Agregado
+import {API_URL} from '../CONFIG/api'; // Agregado
 import './styles/reservas.css';
 import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
-import {API_URL} from '../CONFIG/api';
 import CardsCabanas from '../components/cabanias/listadeCabanias';
 
 function Reservas() {
@@ -103,7 +102,7 @@ function Reservas() {
       const formattedStartDate = format(start, 'yyyy-MM-dd');
       const formattedEndDate = format(end, 'yyyy-MM-dd');
 
-      const apiUrl = `${API_URL}/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
+      const apiUrl = `${API_URL}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
 
       console.log('Fetching from:', apiUrl);
 
