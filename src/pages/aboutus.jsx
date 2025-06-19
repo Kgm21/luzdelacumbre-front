@@ -13,7 +13,7 @@ const equipo = [
   },
   {
     name: "Jazmin",
-    role: "developer",
+    role: "Developer",
     description:
       "Con un talento especial para la programación y la resolución de problemas, ella es la mente técnica detrás de RollingMovies. Su capacidad para convertir líneas de código en funcionalidades que mejoran la experiencia del usuario es lo que hace posible este proyecto. Amante del cine y siempre buscando nuevas formas de innovar.",
     image: "public/av-img/imgJazmin.jpg",
@@ -21,7 +21,7 @@ const equipo = [
   },
   {
     name: "Enzo",
-    role: "developer",
+    role: "Developer",
     description:
       "Con un enfoque estratégico y una visión clara, Enzo es el motor que impulsa a RollingMovies hacia adelante. Su pasión por el entretenimiento y la tecnología se traduce en cada detalle del proyecto. Enzo lidera con creatividad y entusiasmo, asegurándose de que el sitio refleje su misión de conectar a los usuarios con las mejores historias.",
     image: "public/av-img/imgEnzo.jpg",
@@ -30,7 +30,7 @@ const equipo = [
 
   {
     name: "Nanci",
-    role: "developer",
+    role: "Developer",
     description:
       "Con un talento especial para la programación y la resolución de problemas, ella es la mente técnica detrás de RollingMovies. Su capacidad para convertir líneas de código en funcionalidades que mejoran la experiencia del usuario es lo que hace posible este proyecto. Amante del cine y siempre buscando nuevas formas de innovar.",
     image: "public/av-img/imageNanci.jpg",
@@ -46,7 +46,7 @@ const aboutUs = () => {
           Explora y Descubre el Placer del Descanso en Cabañas 'LUZ DE LA
           CUMBRE'
         </h2>
-        <p className="fs-5 text-center">
+        <p className="fw-bold text-white fs-5 text-center ">
           Nuestras exclusivas cabañas están diseñadas para quienes buscan
           desconectarse del mundo sin renunciar al confort. Éstas son ideales
           para los amantes de la naturaleza , perfectas para escapadas
@@ -60,13 +60,13 @@ const aboutUs = () => {
           Conoce a los creadores de 'LUZ DE LA CUMBRE'
         </h3>
         <p className="fs-5 text-center">
-          Cada gran historia necesita un equipo excepcional, y 'Luz de la
+          Cada gran historia necesita un equipo extraordinario, y 'Luz de la
           Cumbre' no es la excepción. Detrás de este apasionante proyecto hay un
           grupo de visionarios que combinaron talento, creatividad y dedicación
           para dar vida a una experiencia única. Ellos no solo comparten una
-          pasión por el cine, sino también un compromiso por conectar contigo a
-          través de cada detalle. Te invitamos a descubrir quiénes son los
-          arquitectos de esta maravillosa aventura cinematográfica.
+          pasión por la programación, sino también un compromiso por conectar
+          contigo a través de cada detalle, Te invitamos a descubrir quiénes son
+          los arquitectos de esta maravillosa aventura .
         </p>
       </section>
       <Row className="row-cols-1 row-cols-sm-2 row-cols-lg-4 justify-content-center align-items-center">
