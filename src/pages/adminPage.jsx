@@ -3,6 +3,7 @@ import { Container, Row, Col, Button, Form, Table, Alert } from "react-bootstrap
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../CONFIG/api";
+import { API_URL } from "../CONFIG/api";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -263,6 +264,8 @@ const handleDeleteBooking = async (bookingId) => {
     setError("");
     setSuccess("");
   };
+
+
 
   const handleDeleteRoom = async (roomId) => {
     setError("");
