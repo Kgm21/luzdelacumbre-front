@@ -122,8 +122,12 @@ function Reservas() {
       }
 
       const data = await response.json();
+      const adjustedData = data.map(cabana => ({
+      ...cabana,
+      imageUrls: cabana.imageUrls.map(url =>  `${API_URL.replace('/api', '')}${url}`)
+    }));
       console.log('Datos recibidos:', data);
-      setCabanasDisponibles(data);
+      setCabanasDisponibles(adjustedData);
       console.log('cabanasDisponibles actualizado:', data);
     } catch (e) {
       console.error('Error al obtener cabañas:', e);
