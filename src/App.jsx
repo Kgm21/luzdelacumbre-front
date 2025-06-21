@@ -7,7 +7,6 @@ import AboutUs from "./pages/aboutus";
 import LoginPage from "./pages/login";
 import Error404 from "./pages/error404";
 import Contactos from "./pages/contactos";
-import CardsCabanas from "./components/cabanias/listadeCabanias";
 import AdminPage from "./pages/adminPage";
 import Registro from "./pages/registro";
 import ProtectedRoute from "/src/routes/protectedRoute.jsx";

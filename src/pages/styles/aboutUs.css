@@ -1,0 +1,124 @@
+/* Define CSS variables for colors */
+:root {
+  --background-color: #1a2a44;
+  --text-color: #65f0f0;
+  --card-background: #f8f9fa;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --title-color: red;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+}
+
+.bs_miembro_img img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  transition: transform 0.3s ease;
+}
+
+.titulo {
+  color: var(--title-color);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-miembro {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: var(--card-background);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-miembro:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-miembro:hover .bs_miembro_img img {
+  transform: scale(1.1);
+}
+
+.card-miembro figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.card-miembro figcaption {
+  margin-top: 15px;
+  color: #333;
+}
+
+.card-miembro figcaption h4 {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.card-miembro figcaption h5 {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.card-miembro figcaption p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bs_miembro_img img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .titulo {
+    font-size: 2rem;
+  }
+
+  .card-miembro {
+    padding: 15px;
+  }
+
+  .card-miembro figcaption h4 {
+    font-size: 1.2rem;
+  }
+
+  .card-miembro figcaption p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .bs_miembro_img img {
+    width: 100px;
+    height: 100px;
+  }
+
+  .titulo {
+    font-size: 1.5rem;
+  }
+
+  .card-miembro {
+    padding: 10px;
+  }
+}
+
+.card-container {
+  height: 100%;
+}
