@@ -1,0 +1,57 @@
+.nav-link:hover {
+      color: var(--dorado); /* Mantiene el color dorado */
+      background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+      transform: scale(1.03); /* Ligeramente más grande */
+    }
+
+    /* Estilos para los botones de cantidad (+/-) */
+    .cantidad-btn {
+      background-color: #e2e8f0; /* bg-gray-200 */
+      color: var(--gris);
+      padding: 0.25rem 0.75rem; /* px-3 py-1 */
+      border-radius: 9999px; /* rounded-full */
+      font-size: 1.125rem; /* text-lg */
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      cursor: pointer; /* Indica que es clickeable */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem; /* Ancho mínimo para consistencia */
+      height: 2.25rem; /* Altura mínima para consistencia */
+    }
+
+    .cantidad-btn:hover {
+      background-color: #cbd5e0; /* bg-gray-300 */
+      transform: scale(1.05); /* Ligero efecto de escala */
+    }
+
+    /* Estilos para los select al enfocarse */
+    select:focus, input[type="text"]:focus { /* Ajustado para el campo de destino, aunque ahora no estará */
+      outline: none;
+      border-color: var(--marron);
+      box-shadow: 0 0 0 2px rgba(101, 82, 60, 0.5); /* Anillo de enfoque personalizado */
+    }
+
+    /* Estilos para el logo en el navbar */
+    .logo-navbar {
+      height: 70px;
+      width: auto; /* Mantiene la proporción */
+      max-width: 150px; /* Limita el ancho máximo del logo para pantallas pequeñas */
+    }
+
+    /* Responsive adjustments for the search box */
+    @media (max-width: 768px) {
+      .buscador {
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+      }
+      .buscador > div {
+        width: 100%; /* Make each input full width on smaller screens */
+      }
+      .buscador select, .buscador input[type="text"] {
+        width: 100%; /* Ensure inputs take full width */
+      }
+    }
+
+    

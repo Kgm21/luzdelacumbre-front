@@ -78,7 +78,7 @@ const AboutUs = () => {
                     alt={`${member.name}, ${member.role} of Luz de la Cumbre`}
                     className="img-fluid rounded-circle"
                     onError={(e) => {
-                      e.target.src = "/path/to/default-image.jpg";
+                      e.target.src = "/personajes/Gemini_Generated_Image_r60pjjr60pjjr60p.png";
                     }}
                   />
                 </div>

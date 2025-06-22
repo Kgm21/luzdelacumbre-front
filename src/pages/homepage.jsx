@@ -9,6 +9,7 @@ import "react-date-range/dist/theme/default.css";
 import "../pages/styles/reservas.css"; // Reusamos estilos de reservas
 import CardsCabanas from '../components/cabanias/listadeCabanias';
 import { API_URL } from "../CONFIG/api";
+import "../pages/styles/homepage.css";
 
 const HomePage = () => {
   const navigate = useNavigate();
