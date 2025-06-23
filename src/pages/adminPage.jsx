@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Form, Table, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../CONFIG/api";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const AdminPage = () => {
   }, [auth, navigate]);
 
   const fetchRooms = async () => {
-    const response = await fetch("http://localhost:3000/api/rooms", {
+    const response = await fetch(`${API_URL}/rooms`, {
       headers: { Authorization: `Bearer ${auth.token}` },
     });
     if (response.ok) {
@@ -40,7 +41,7 @@ const AdminPage = () => {
   };
 
   const fetchUsers = async () => {
-    const response = await fetch("http://localhost:3000/api/usuarios", {
+    const response = await fetch(`${API_URL}/usuarios`, {
       headers: { Authorization: `Bearer ${auth.token}` },
     });
     if (response.ok) {
@@ -68,7 +69,7 @@ const AdminPage = () => {
     formData.append("availability", newRoom.availability);
     if (newRoom.photo) formData.append("photo", newRoom.photo);
 
-    const response = await fetch("http://localhost:3000/api/rooms", {
+    const response = await fetch(`${API_URL}/rooms`, {
       method: "POST",
       headers: { Authorization: `Bearer ${auth.token}` },
       body: formData,
@@ -83,7 +84,7 @@ const AdminPage = () => {
   };
 
   const handleDeleteRoom = async (roomId) => {
-    const response = await fetch(`http://localhost:3000/api/rooms/${roomId}`, {
+    const response = await fetch(`${API_URL}/rooms/${roomId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${auth.token}` },
     });
@@ -97,7 +98,7 @@ const AdminPage = () => {
 
   const handleUserAction = async (userId, action) => {
     const endpoint = action === "suspend" ? "suspend" : "delete";
-    const response = await fetch(`http://localhost:3000/api/usuarios/${userId}/${endpoint}`, {
+    const response = await fetch(`${API_URL}/usuarios/${userId}/${endpoint}`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${auth.token}`, "Content-Type": "application/json" },
     });

@@ -19,7 +19,7 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
     e.preventDefault();
     try {
       // Usando la URL hardcodeada
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
