@@ -40,24 +40,18 @@ const equipo = [
 const AboutUs = () => {
   return (
     <Container className="py-5 content">
-      <header className="text-center mb-5">
-        <h2 className="pb-3 fw-bold text-center titulo text-primary">
-          Explora y Descubre el Placer del Descanso en Cabañas 'LUZ DE LA CUMBRE'
-        </h2>
-        <p className="fw-bold text-white fs-5 text-center bg-dark p-3 rounded">
-          Nuestras exclusivas cabañas están diseñadas para quienes buscan
-          desconectarse del mundo sin renunciar al confort. Éstas son ideales
-          para los amantes de la naturaleza, perfectas para escapadas
-          románticas o simplemente para disfrutar en familia. Viví una
-          experiencia única e inolvidable en un lugar que no vas a querer
-          dejar. Tu próxima historia comienza en 'LUZ DE LA CUMBRE'
-        </p>
-      </header>
-      <section className="text-left mb-5">
-        <h3 className="fw-bold mb-3 text-center text-success">
-          Conocé a los creadores de 'LUZ DE LA CUMBRE'
-        </h3>
-        <p className="fs-5 text-center text-muted">
+      <header className="text-center mb-4 pb-4">
+  <div className="titulo-container">
+    <h2 className="titulo fw-bold text-terra">
+      Conocé a los creadores de 'LUZ DE LA CUMBRE'
+    </h2>
+  </div>
+ 
+</header>
+
+      <section className=" creadores-section text-left mb-5">
+        
+        <p className="fs-5 text-center text-muted mb-3">
           Cada gran historia necesita un equipo extraordinario, y 'Luz de la
           Cumbre' no es la excepción. Detrás de este apasionante proyecto hay un
           grupo de visionarios que combinaron talento, creatividad y dedicación
@@ -67,7 +61,7 @@ const AboutUs = () => {
           los arquitectos de esta maravillosa aventura.
         </p>
       </section>
-      <Row className="row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      <Row className="row-cols-1 row-cols-sm-2 row-cols-md-4 row-cols-lg-4 g-4">
         {equipo.map((member, index) => (
           <div key={index} className="col d-flex">
             <div className={`card-miembro w-100 ${member.bgColor} p-3 rounded`}>
@@ -83,13 +77,9 @@ const AboutUs = () => {
                   />
                 </div>
                 <figcaption>
-                  <h4 style={{ color: "black", fontWeight: "bold" }}>
-                    {member.name}
-                  </h4>
-                  <h5 style={{ color: "black", fontSize: "14px" }}>
-                    {member.role}
-                  </h5>
-                  <p style={{ color: "black" }}>{member.description}</p>
+                  <h4>{member.name}</h4>
+                  <h5>{member.role}</h5>
+                  <p>{member.description}</p>
                 </figcaption>
               </figure>
             </div>

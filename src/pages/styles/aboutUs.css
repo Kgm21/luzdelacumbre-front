@@ -1,124 +1,206 @@
-/* Define CSS variables for colors */
-:root {
-  --background-color: #1a2a44;
-  --text-color: #65f0f0;
-  --card-background: #f8f9fa;
-  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  --title-color: red;
+/* Contenedor principal */
+.content {
+  padding: 2rem 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+.creadores-section {
+  margin-top: 4rem;
+}
+.text-terra {
+  color:#FFFFFF; /* o #A0522D para más calidez */
 }
 
-body {
-  background-color: var(--background-color);
-  color: var(--text-color);
-  margin: 0;
-  padding: 0;
-}
 
-.bs_miembro_img img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  transition: transform 0.3s ease;
+.titulo-container {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .titulo {
-  color: var(--title-color);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  text-align: center;
+  max-width: 100vw;
+  padding: 0 1rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow: hidden;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.hero-text-box {
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 100%; /* Cambiamos a 100% para pantallas pequeñas */
+  margin: 0 auto;
+  margin-bottom: 2rem; /* Reducimos margen inferior */
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+  overflow: auto; /* Maneja desbordamiento con desplazamiento */
+  box-sizing: border-box;
+}
+
+.spacing-bottom {
+  margin-bottom: 5rem !important;
 }
 
 .card-miembro {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-  background-color: var(--card-background);
-  border-radius: 10px;
-  box-shadow: var(--card-shadow);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: auto;
+  overflow: visible;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  width: 100%;
+  padding: 1rem; /* Padding uniforme */
 }
 
 .card-miembro:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-.card-miembro:hover .bs_miembro_img img {
-  transform: scale(1.1);
+.bs_miembro_img {
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  margin: 0 auto;
+  flex-shrink: 0;
 }
 
-.card-miembro figure {
+.bs_miembro_img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+}
+
+figcaption {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  height: 100%;
-  text-align: center;
+  flex-grow: 1;
+  padding: 1rem 0;
 }
 
-.card-miembro figcaption {
-  margin-top: 15px;
-  color: #333;
+figcaption h4 {
+  color: black;
+  font-weight: bold;
 }
 
-.card-miembro figcaption h4 {
-  font-size: 1.5rem;
-  margin-bottom: 5px;
+figcaption h5 {
+  color: black;
+  font-size: 14px;
 }
 
-.card-miembro figcaption h5 {
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 10px;
+figcaption p {
+  color: black;
+  margin-bottom: 0;
+  word-break: break-word;
+  overflow: auto;
+  flex-grow: 1;
+  padding: 0 0.5rem;
 }
 
-.card-miembro figcaption p {
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-/* Responsive adjustments */
+/* Responsividad */
 @media (max-width: 768px) {
-  .bs_miembro_img img {
-    width: 120px;
-    height: 120px;
+  .titulo {
+    font-size: 1.5rem;
+    padding: 0 1rem;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
-  .titulo {
-    font-size: 2rem;
+  .hero-text-box {
+    font-size: 1rem;
+    padding: 12px; /* Reducimos padding */
+    line-height: 1.5;
+    max-width: 90%;
+    margin-bottom: 1.5rem;
+    overflow: auto;
   }
 
   .card-miembro {
-    padding: 15px;
+    width: 100%;
+    padding: 0.75rem;
   }
 
-  .card-miembro figcaption h4 {
-    font-size: 1.2rem;
+  .bs_miembro_img {
+    width: 90px;
+    height: 90px;
   }
 
-  .card-miembro figcaption p {
+  figcaption h4 {
+    font-size: 1.1rem;
+  }
+
+  figcaption h5 {
+    font-size: 0.9rem;
+  }
+
+  figcaption p {
     font-size: 0.85rem;
   }
 }
 
 @media (max-width: 576px) {
-  .bs_miembro_img img {
-    width: 100px;
-    height: 100px;
+  .bs_miembro_img {
+    width: 80px;
+    height: 80px;
   }
 
-  .titulo {
-    font-size: 1.5rem;
-  }
-
-  .card-miembro {
-    padding: 10px;
+  figcaption p {
+    font-size: 0.8rem;
   }
 }
 
-.card-container {
-  height: 100%;
+@media (max-width: 400px) {
+  .titulo {
+    font-size: 1.2rem;
+    padding: 0 0.75rem;
+  }
+
+  .hero-text-box {
+    font-size: 0.9rem;
+    padding: 10px;
+    margin-bottom: 1rem;
+    max-width: 85%;
+  }
+
+  .card-miembro {
+    padding: 0.5rem;
+  }
+
+  .bs_miembro_img {
+    width: 70px;
+    height: 70px;
+  }
+
+  figcaption h4 {
+    font-size: 1rem;
+  }
+
+  figcaption h5 {
+    font-size: 0.8rem;
+  }
+
+  figcaption p {
+    font-size: 0.75rem;
+    padding: 0 0.25rem;
+  }
 }

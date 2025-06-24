@@ -1,13 +1,13 @@
 /* Estilos para la barra de navegación */
     nav {
-      background-color: var(--marron);
+      background-color: var(--verde);
       /* Sombra mejorada para la barra de navegación */
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     /* Estilos para los enlaces de navegación */
     .nav-link {
-      color: white;
+      color: black;
       font-weight: 500;
       padding: 0.5rem 0.75rem; /* Aumento de padding para mejor área de clic */
       border-radius: 0.5rem; /* Bordes redondeados */
@@ -23,7 +23,7 @@
 
     /* Estilos para los botones de cantidad (+/-) */
     .cantidad-btn {
-      background-color: #e2e8f0; /* bg-gray-200 */
+      background-color: black ;
       color: var(--gris);
       padding: 0.25rem 0.75rem; /* px-3 py-1 */
       border-radius: 9999px; /* rounded-full */
