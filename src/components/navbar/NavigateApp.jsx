@@ -19,7 +19,7 @@ const NavigateApp = ({ setUsuarioAutenticado }) => {
       <Container id="container">
         <Navbar.Brand className="navbar-brand-custom">
           <img
-            src="/logo.jpg"
+            src="/logo-removebg-preview.png"
             alt="Logo"
             width="160"
             height="160"

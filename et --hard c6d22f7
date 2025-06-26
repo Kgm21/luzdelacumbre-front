@@ -1,0 +1,22 @@
+[33mc6d22f7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m)[m HEAD@{0}: commit: agregando tablas
+[33m3844535[m HEAD@{1}: commit: arreglo precio
+[33m2ff71d0[m HEAD@{2}: commit: n
+[33m422898e[m HEAD@{3}: commit: arrreglo reservas
+[33m081df6b[m HEAD@{4}: commit: nuevos arreglos
+[33m3b9e70b[m HEAD@{5}: commit: arreglos de conexion api
+[33m93124a4[m HEAD@{6}: commit: nuevos cambios
+[33m2d95481[m HEAD@{7}: commit: nuevos cambios
+[33mbf50ed7[m HEAD@{8}: commit: nuevos cambios esteticos
+[33mcedae30[m HEAD@{9}: commit (merge): nuevos cambios
+[33mb53eccb[m HEAD@{10}: commit: nuevos cambios
+[33me9d0c0a[m[33m ([m[1;32mjazmin[m[33m, [m[1;32mdesarrollo[m[33m)[m HEAD@{11}: checkout: moving from jazmin to dev
+[33me9d0c0a[m[33m ([m[1;32mjazmin[m[33m, [m[1;32mdesarrollo[m[33m)[m HEAD@{12}: checkout: moving from jazmin to jazmin
+[33me9d0c0a[m[33m ([m[1;32mjazmin[m[33m, [m[1;32mdesarrollo[m[33m)[m HEAD@{13}: checkout: moving from desarrollo to jazmin
+[33me9d0c0a[m[33m ([m[1;32mjazmin[m[33m, [m[1;32mdesarrollo[m[33m)[m HEAD@{14}: checkout: moving from dev to desarrollo
+[33me9d0c0a[m[33m ([m[1;32mjazmin[m[33m, [m[1;32mdesarrollo[m[33m)[m HEAD@{15}: pull origin dev: Fast-forward
+[33me527d09[m HEAD@{16}: commit: cambios en reservas
+[33m52ddc5b[m HEAD@{17}: commit: nuievos cambios
+[33m8c1d8b2[m HEAD@{18}: commit: arreglando rutas protegidas
+[33mdaa88eb[m HEAD@{19}: commit: enrutamiento
+[33mb57846f[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{20}: checkout: moving from main to dev
+[33mb57846f[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{21}: clone: from https://github.com/Kgm21/luzdelacumbre-front.git
