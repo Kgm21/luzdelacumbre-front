@@ -1,12 +1,14 @@
 /* Estilos para el footer */
     .footer {
-      background-color: var(--marron);
+      background-color: var(--verde);
       color: white;
     }
 
     .footer a {
       color: white;
       transition: color 0.3s ease;
+     padding: 10px;
+     text-decoration: none;
     }
 
     .footer a:hover {
