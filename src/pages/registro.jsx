@@ -71,50 +71,69 @@ const Registro = () => {
     }));
   };
 
-  // Manejar el envío del formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (validateForm()) {
-      setServerError(""); // Limpiar errores del servidor
+  if (validateForm()) {
+    setServerError(""); // Limpiar errores del servidor
+    setErrors({});      // Limpiar errores de campos
 
-      try {
-        const response = await fetch(`${API_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            apellido: formData.apellido,
-            email: formData.email,
-            password: formData.password,
-          }),
-        });
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          apellido: formData.apellido,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al registrar');
-        }
+    if (!response.ok) {
+  const errorData = await response.json();
+  console.log("Error recibido del backend:", errorData); // mantener para debug
 
-        const data = await response.json();
-        console.log("Respuesta del backend:", data);
+  // Verificamos si viene el campo 'errors'
+  if (errorData.errors) {
+    const errors = errorData.errors;
 
-        setSuccess(true);
-        setFormData({
-          name: "",
-          apellido: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
-        setTimeout(() => navigate("/iniciar-sesion"), 2000); // Redirige tras 2 segundos
-      } catch (err) {
-        setServerError(err.message || 'Error al conectar con el servidor');
-        console.error('Error en registro:', err);
-      }
+    // Transformamos en errores individuales por campo
+    const formattedErrors = {};
+    for (const key in errors) {
+      formattedErrors[key] = errors[key].msg;
     }
-  };
+
+    setErrors(formattedErrors); // esto carga los errores por campo en el formulario
+  } else {
+    setServerError(errorData.message || 'Error al registrar');
+  }
+
+  return;
+}
+
+
+      const data = await response.json();
+      console.log("Respuesta del backend:", data);
+
+      setSuccess(true);
+      setFormData({
+        name: "",
+        apellido: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setTimeout(() => navigate("/iniciar-sesion"), 2000);
+    } catch (err) {
+      setServerError(err.message || 'Error al conectar con el servidor');
+      console.error('Error en registro:', err);
+    }
+  }
+};
+
 
   return (
     <Container className="auth-wrapper">

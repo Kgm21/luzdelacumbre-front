@@ -7,10 +7,10 @@ import AboutUs from "./pages/aboutus";
 import LoginPage from "./pages/login";
 import Error404 from "./pages/error404";
 import Contactos from "./pages/contactos";
-import CardsCabanas from "./pages/reservas";
 import AdminPage from "./pages/adminPage";
 import Registro from "./pages/registro";
 import ProtectedRoute from "/src/routes/protectedRoute.jsx";
+import Gallery from "./pages/galery";
 import { AuthProvider } from "./context/AuthContext";
 import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -36,6 +36,7 @@ function App() {
               <Route path="/contactos" element={<Contactos />} />
               <Route path="/reservas" element={<Reservas />} />
               <Route path='/cabanias' element={<Cabanias/>}></Route>
+              <Route path="/galery" element={<Gallery/>}></Route>
             
             <Route
                 path="/administracion"

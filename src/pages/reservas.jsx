@@ -3,10 +3,10 @@ import { DateRange } from 'react-date-range';
 import { format, differenceInDays } from 'date-fns';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
+import {API_URL} from '../CONFIG/api'; // Agregado
 import './styles/reservas.css';
 import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
-import {API_URL} from '../CONFIG/api';
-import CardsCabanas from '../components/cabañas/listadeCabanias';
+import CardsCabanas from '../components/cabanias/listadeCabanias';
 
 function Reservas() {
   console.log('Base URL:', API_URL);
@@ -121,8 +121,12 @@ function Reservas() {
       }
 
       const data = await response.json();
+      const adjustedData = data.map(cabana => ({
+      ...cabana,
+      imageUrls: cabana.imageUrls.map(url =>  `${API_URL.replace('/api', '')}${url}`)
+    }));
       console.log('Datos recibidos:', data);
-      setCabanasDisponibles(data);
+      setCabanasDisponibles(adjustedData);
       console.log('cabanasDisponibles actualizado:', data);
     } catch (e) {
       console.error('Error al obtener cabañas:', e);
@@ -271,7 +275,7 @@ function Reservas() {
       <div className="reservas-main-content">
         <section className="max-w-6xl mx-auto px-6 w-full mt-0">
           <h2 className="text-3xl font-bold mb-8 text-[var(--marron)] text-center">
-            Hospedajes recomendados
+            Cabañas disponibles
           </h2>
           {cargando && <p className="text-center text-xl text-gray-700">Cargando cabañas...</p>}
           {error && (
@@ -290,11 +294,13 @@ function Reservas() {
               No se encontraron cabañas para los filtros seleccionados.
             </p>
           )}
-          <div className="grid grid-cols-1 gap-8">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
   {!cargando && !error && cabanasDisponibles.map(c => (
     <CardsCabanas key={c._id} cabana={c} />
   ))}
 </div>
+
+
 
         </section>
       </div>

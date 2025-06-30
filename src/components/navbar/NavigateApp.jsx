@@ -19,7 +19,7 @@ const NavigateApp = ({ setUsuarioAutenticado }) => {
       <Container id="container">
         <Navbar.Brand className="navbar-brand-custom">
           <img
-            src="/logo.jpg"
+            src="/logo-removebg-preview.png"
             alt="Logo"
             width="160"
             height="160"
@@ -32,6 +32,7 @@ const NavigateApp = ({ setUsuarioAutenticado }) => {
   {/* Botones visibles para todos */}
   <Nav.Link as={Link} to="/" className="nav-link-custom">Inicio</Nav.Link>
   <Nav.Link as={Link} to="/cabanias" className="nav-link-custom">Cabañas</Nav.Link>
+  <Nav.Link as={Link} to="/galery" className="nav-link-custom">Galeria de imagenes</Nav.Link>
   <Nav.Link as={Link} to="/about" className="nav-link-custom">Nosotros</Nav.Link>
   <Nav.Link as={Link} to="/contactos" className="nav-link-custom">Contacto</Nav.Link>
  <Nav.Link as={Link} to="/reservas" className="nav-link-custom">Reservas</Nav.Link>
