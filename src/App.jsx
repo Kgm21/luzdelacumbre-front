@@ -44,7 +44,7 @@ function App() {
               <Route path="/reservas" element={<Reservas />} />
               <Route path="/cabanias" element={<Cabanias />}></Route>
               <Route path="/galery" element={<Gallery />}></Route>
-
+              <Route path="/error404" element={<Error404/>}></Route>
               <Route path="/cabanias" element={<Cabanias />}></Route>
 
               <Route
