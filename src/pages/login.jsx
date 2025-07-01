@@ -41,7 +41,7 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
       const result = await response.json();
       login(result.token, result.user.role);
       setUsuarioAutenticado(true);
-      navigate(result.user.role === "admin" ? "/administracion" : "/home");
+      navigate(result.user.role === "admin" ? "/administracion" : "/reservas");
     } catch (err) {
       console.error("Error en el login:", err);
       setError(err.message);

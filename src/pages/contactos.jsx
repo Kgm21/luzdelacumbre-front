@@ -34,14 +34,14 @@ const Contactos = () => {
 
       if (response.ok) {
         reset();
-        alert("Mensaje enviado correctamente");
+       
       } else {
         const errData = await response.json();
-        alert(`Error: ${errData.message || "No se pudo enviar el mensaje"}`);
+        
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error de conexión con el servidor");
+      
     }
   };
 
