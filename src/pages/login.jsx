@@ -40,7 +40,7 @@ const LoginPage = ({ setUsuarioAutenticado }) => {
 
       const result = await response.json();
       login(result.token, result.user.role);
-
+      localStorage.setItem("token", result.token)
       localStorage.setItem("userId", result.user.id);
       setUsuarioAutenticado(true);
       navigate(result.user.role === "admin" ? "/administracion" : "/reservas");
