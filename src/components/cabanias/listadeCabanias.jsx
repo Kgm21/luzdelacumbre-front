@@ -3,9 +3,13 @@ import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import { FaUsers } from 'react-icons/fa';
 import { API_URL } from '../../CONFIG/api';
+import { useNavigate } from 'react-router-dom';
 import "./cardcabanas.css";
 
-function CardsCabanas({ cabana, showPrice = true, modoSimple = false, className = "" }) {
+function CardsCabanas({ cabana, checkInDate, checkOutDate, passengersCount, userId, onBookingSuccess, showPrice = true, modoSimple = false, className = "" }) {
+    const navigate = useNavigate();
+  
+  
   if (!cabana) {
     return <p>No hay datos de cabaña disponibles.</p>;
   }
@@ -16,6 +20,40 @@ function CardsCabanas({ cabana, showPrice = true, modoSimple = false, className 
 
   const getImageUrl = (url) =>
     url.startsWith('http') ? url : `${API_URL}${url.startsWith('/') ? url : '/' + url}`;
+
+const handleReservar = async () => {
+  if (!userId) {
+    navigate('/login')
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        roomId: cabana._id,
+        checkInDate,
+        checkOutDate,
+        passengersCount,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al crear la reserva');
+    }
+    //agregar msj exitoso
+
+    if (onBookingSuccess) onBookingSuccess(data.booking);
+  } catch (error) {
+    console.error('Error en la reserva:', error);
+    alert(`Error: ${error.message}`);
+  }
+};
 
   return (
     <div className={`card-cabanas ${modoSimple ? 'homepage-card' : ''} ${className}`}>
@@ -84,7 +122,7 @@ function CardsCabanas({ cabana, showPrice = true, modoSimple = false, className 
                 <p className="text-lg font-bold text-blue-700 mb-2">
                   USD ${cabana.price} / noche <span className="text-xs text-gray-500">+IVA</span>
                 </p>
-                <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 rounded-md transition-colors duration-200 text-sm">
+                <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 rounded-md transition-colors duration-200 text-sm" onClick={handleReservar}>
                   Reservar
                 </button>
               </div>

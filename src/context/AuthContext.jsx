@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
+import { API_URL } from "../CONFIG/api";
 
 const AuthContext = createContext();
 
@@ -12,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const savedToken = localStorage.getItem("token"); 
     if (savedToken) {
-      fetch("http://localhost:3000/api/auth/validate-token", {
+      fetch(`${API_URL}/api/auth/validate-token`, {
         headers: { Authorization: `Bearer ${savedToken}` },
       })
         .then((res) => res.json())
