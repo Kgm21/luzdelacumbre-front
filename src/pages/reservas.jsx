@@ -268,7 +268,7 @@ function Reservas() {
         </div>
       </header>
       <section className="max-w-6xl mx-auto mt-8 px-6 text-center">
-        <h2 className="text-2xl font-bold mb-8 text-[var(--marron)]">
+        <h2 className="text-2xl font-bold mb-8 mt-4 text-center">
           Vouchers seleccionados especialmente para usted
         </h2>
       </section>

@@ -12,7 +12,6 @@ const Error404 = () => {
         alt="Error 404 - Página no encontrada"
         className="error-img"
       />
-      <h1>Error 404</h1>
       <p>La página que buscás no existe o fue movida.</p>
       <button className="error-btn" onClick={() => navigate("/")}>
         Volver al inicio
