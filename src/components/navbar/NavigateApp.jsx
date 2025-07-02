@@ -31,7 +31,7 @@ const NavigateApp = ({ setUsuarioAutenticado }) => {
           <Nav className="ms-auto me-6">
   {/* Botones visibles para todos */}
   <Nav.Link as={Link} to="/" className="nav-link-custom">Inicio</Nav.Link>
-  <Nav.Link as={Link} to="/cabanias" className="nav-link-custom">Cabañas</Nav.Link>
+  <Nav.Link as={Link} to="/error404" className="nav-link-custom">Cabañas</Nav.Link>
   <Nav.Link as={Link} to="/galery" className="nav-link-custom">Galeria de imagenes</Nav.Link>
   <Nav.Link as={Link} to="/about" className="nav-link-custom">Nosotros</Nav.Link>
   <Nav.Link as={Link} to="/contactos" className="nav-link-custom">Contacto</Nav.Link>

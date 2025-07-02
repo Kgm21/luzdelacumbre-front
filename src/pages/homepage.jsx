@@ -73,9 +73,9 @@ const HomePage = () => {
         {/* Content of the header (Title and Subtitle) */}
         <div className="relative z-10 text-center mb-8">
           {/* Main Title with text shadow */}
-          <h1 className="text-9xl font-bold mb-2 text-with-shadow">Cabañas Luz de la Cumbre</h1>
+          <h1 className="text-9xl text-with-shadow mb-2 text-white">Cabañas Luz de la Cumbre</h1>
           {/* Subtitle with a slightly lighter text shadow */}
-          <p className="text-4xl subtitle-with-shadow">Descubre el descanso perfecto en la naturaleza</p>
+          <p className="text-4xl text-white subtitle-with-shadow">Descubre el descanso perfecto en la naturaleza</p>
         </div>
 
         
