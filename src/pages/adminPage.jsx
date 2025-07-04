@@ -36,15 +36,23 @@ const AdminPage = () => {
     fetchReservations();
   }
 }, [auth.isAuthenticated, auth.role, auth.token, navigate]);
-
 const handleInitAvailability = async () => {
+  console.log('Token:', auth.token);
   try {
-    const response = await axios.post('/api/availability/init');
-    alert(response.data.message);
+    const { data } = await axios.post(
+      `${API_URL}/api/availability/init`,
+      null,
+      { headers: { Authorization: `Bearer ${auth.token}` } }
+    );
+    console.log('✅ initAvailability response:', data);
+    alert(data.message);
   } catch (error) {
-    alert('Error al inicializar disponibilidad: ' + error.message);
+    console.error('Error en initAvailability:', error.response?.data);
+    alert('Error al inicializar disponibilidad: ' + (error.response?.data?.error || error.message));
   }
 };
+
+
 
 const fetchReservations = async () => {
   if (!auth?.token) {
