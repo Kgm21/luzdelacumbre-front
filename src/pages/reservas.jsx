@@ -25,6 +25,8 @@ function Reservas() {
   const huespedesRef = useRef(null);
   const searchBarRef = useRef(null);
 
+  const userId = localStorage.getItem("userId");
+
   const MIN_NIGHTS = 5; // Igual que en el backend
 
   useEffect(() => {
@@ -296,7 +298,15 @@ function Reservas() {
           )}
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
   {!cargando && !error && cabanasDisponibles.map(c => (
-    <CardsCabanas key={c._id} cabana={c} />
+    <CardsCabanas
+    key={c._id}
+    cabana={c}
+    userId={userId} 
+    checkInDate={rangoFecha[0].startDate.toISOString()}
+    checkOutDate={rangoFecha[0].endDate.toISOString()}
+    passengersCount={adultos + ninos}
+    onBookingSuccess={(booking) => console.log('Reserva creada:', booking)}
+  />
   ))}
 </div>
 
