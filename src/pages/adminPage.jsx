@@ -39,15 +39,7 @@ const AdminPage = () => {
 
 const handleInitAvailability = async () => {
   try {
-    const response = await axios.post(
-      `${API_URL}/api/availability/init`,
-      null,
-      {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      }
-    );
+    const response = await axios.post('/api/availability/init');
     alert(response.data.message);
   } catch (error) {
     alert('Error al inicializar disponibilidad: ' + error.message);

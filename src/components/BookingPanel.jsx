@@ -48,20 +48,27 @@ const ReservationsPanel = ({ API_URL, auth }) => {
   }, [auth?.token, API_URL]);
 
   const fetchBookings = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/bookings`, {
-        headers: { Authorization: `Bearer ${auth.token}` },
-      });
-      if (!res.ok) throw new Error("No se pudieron cargar las reservas.");
-      const data = await res.json();
-      setBookings(Array.isArray(data.data) ? data.data : []);
-    } catch (err) {
-      setError(err.message || "Error desconocido.");
-    } finally {
-      setLoading(false);
+  if (!auth?.token) {
+    setError("Token no válido o ausente.");
+    return;
+  }
+  setLoading(true);
+  try {
+    const res = await fetch(`${API_URL}/api/bookings`, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Error cargando reservas: ${res.status} ${errorText}`);
     }
-  };
+    const data = await res.json();
+    setBookings(Array.isArray(data.data) ? data.data : []);
+  } catch (err) {
+    setError(err.message || "Error desconocido.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchRooms = async () => {
     try {
@@ -178,7 +185,7 @@ const ReservationsPanel = ({ API_URL, auth }) => {
       <h3>Reservas</h3>
       {error && <div style={{ color: "red" }}>{error}</div>}
 
-      <button class="mb-3" onClick={() => setMostrarPasadas(!mostrarPasadas)}>
+      <button className="mb-3" onClick={() => setMostrarPasadas(!mostrarPasadas)}>
         {mostrarPasadas ? "Ocultar reservas pasadas" : "Mostrar reservas pasadas"}
       </button>
 
