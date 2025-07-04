@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../CONFIG/api";
 import ReservationsPanel from "../components/BookingPanel";
-
+import axios from "axios";
 const AdminPage = () => {
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
@@ -37,6 +37,22 @@ const AdminPage = () => {
   }
 }, [auth.isAuthenticated, auth.role, auth.token, navigate]);
 
+const handleInitAvailability = async () => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/availability/init`,
+      null,
+      {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      }
+    );
+    alert(response.data.message);
+  } catch (error) {
+    alert('Error al inicializar disponibilidad: ' + error.message);
+  }
+};
 
 const fetchReservations = async () => {
   if (!auth?.token) {
@@ -221,6 +237,13 @@ const fetchReservations = async () => {
           <Dropdown.Item onClick={() => setActiveSection("reservations")}>
             Ver/Editar Reservas
           </Dropdown.Item>
+          <Dropdown.Item onClick={() => {
+  setActiveSection("availability");
+  handleInitAvailability();
+}}>
+  Ampliar disponibilidad
+</Dropdown.Item>
+          
         </Dropdown.Menu>
       </Dropdown>
 
