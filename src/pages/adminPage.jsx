@@ -28,47 +28,42 @@ const AdminPage = () => {
   const [reservations, setReservations] = useState([])
 
   useEffect(() => {
-  console.log("auth", auth);
-  if (!auth.isAuthenticated || auth.role !== "admin") {
-    navigate("/login");
-  } else {
-    fetchRooms();
-    fetchUsers();
-    fetchReservations();
-  }
-}, [auth.isAuthenticated, auth.role, auth.token, navigate]);
+    if (!auth.isAuthenticated || auth.role !== "admin") {
+      navigate("/login");
+    } else {
+      fetchRooms();
+      fetchUsers();
+      fetchReservations();
+    }
+  }, [auth.isAuthenticated, auth.role, auth.token, navigate]);
 
-const handleInitAvailability = async () => {
-  try {
-    const response = await axios.post('/api/availability/init');
-    const data = response.json()
-    return data
-  } catch (error) {
-   console.log(error)
-  }
-};
+  const handleInitAvailability = async () => {
+    try {
+      const response = await axios.post('/api/availability/init');
+      const data = response.json()
+      return data
+    } catch (error) {
+      console.log(error)
+    }
+  };
 
-const fetchReservations = async () => {
-  if (!auth?.token) {
-    console.log("No token, abortando fetchReservations");
-    return;
-  }
+  const fetchReservations = async () => {
+    if (!auth?.token) {
+      return;
+    }
 
-  try {
-    console.log("fetchReservations: iniciando fetch...");
-    const res = await fetch(`${API_URL}/api/bookings`, {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    console.log("fetchReservations: respuesta status", res.status);
+    try {
+      const res = await fetch(`${API_URL}/api/bookings`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
 
-    if (!res.ok) throw new Error("Error cargando reservas");
-    const data = await res.json();
-    console.log("fetchReservations: data recibida", data);
-    setReservations(data);
-  } catch (error) {
-    console.error("Error fetching reservations:", error);
-  }
-};
+      if (!res.ok) throw new Error("Error cargando reservas");
+      const data = await res.json();
+      setReservations(data);
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+    }
+  };
 
 
   const fetchRooms = async () => {
@@ -77,11 +72,11 @@ const fetchReservations = async () => {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || "Error al cargar habitaciones");
       }
-      
+
       setRooms(data.data);
     } catch (err) {
       setError(err.message);
@@ -112,61 +107,88 @@ const fetchReservations = async () => {
   };
 
   const handleAddOrUpdateRoom = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  e.preventDefault();
+  setError("");
+  setSuccess("");
 
-    const formData = new FormData();
-    formData.append("roomNumber", newRoom.roomNumber);
-    formData.append("type", newRoom.type);
-    formData.append("price", Number(newRoom.price));
-    formData.append("description", newRoom.description);
-    formData.append("capacity", Number(newRoom.capacity));
-    formData.append("isAvailable", String(newRoom.isAvailable));
-    if (newRoom.photos) {
-      Array.from(newRoom.photos).forEach((photo) => formData.append("photos", photo));
-    }
+  const method = editRoomId ? "PUT" : "POST";
+  const url = editRoomId ? `${API_URL}/api/rooms/${editRoomId}` : `${API_URL}/api/rooms`;
 
-    const method = editRoomId ? "PUT" : "POST";
-    const url = editRoomId ? `${API_URL}/api/rooms/${editRoomId}` : `${API_URL}/api/rooms`;
+  let response;
 
-    try {
-      const response = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${auth.token}` },
-        body: formData,
+  try {
+    
+    if (newRoom.photos && newRoom.photos.length > 0) {
+      const formData = new FormData();
+      formData.append("roomNumber", newRoom.roomNumber);
+      formData.append("type", newRoom.type);
+      formData.append("price", Number(newRoom.price));
+      formData.append("description", newRoom.description);
+      formData.append("capacity", Number(newRoom.capacity));
+      formData.append("isAvailable", String(newRoom.isAvailable));
+
+      Array.from(newRoom.photos).forEach((photo) => {
+        formData.append("photos", photo);
       });
 
-      const res = await response.json();
-
-      if (response.ok) {
-        setSuccess(editRoomId ? "Habitación actualizada" : "Habitación agregada con éxito");
-        setNewRoom({
-          roomNumber: "",
-          type: "",
-          price: "",
-          description: "",
-          capacity: "",
-          isAvailable: true,
-          photos: null,
-        });
-        setEditRoomId(null);
-        fetchRooms();
-      } else {
-        if (response.status === 401) {
-          setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
-          logout();
-          navigate("/login");
-        } else if (response.status === 403) {
-          setError("No tienes permisos para realizar esta acción.");
-        } else {
-          setError(res.message || `Error al ${editRoomId ? "actualizar" : "agregar"} habitación`);
-        }
-      }
-    } catch (err) {
-      setError(`Error al ${editRoomId ? "actualizar" : "agregar"} habitación: ${err.message}`);
+      response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+         
+        },
+        body: formData,
+      });
+    } else {
+      
+      response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomNumber: newRoom.roomNumber,
+          type: newRoom.type,
+          price: Number(newRoom.price),
+          description: newRoom.description,
+          capacity: Number(newRoom.capacity),
+          isAvailable: newRoom.isAvailable,
+        }),
+      });
     }
-  };
+
+    const res = await response.json();
+
+    if (response.ok) {
+      setSuccess(editRoomId ? "Habitación actualizada" : "Habitación agregada con éxito");
+      setNewRoom({
+        roomNumber: "",
+        type: "",
+        price: "",
+        description: "",
+        capacity: "",
+        isAvailable: true,
+        photos: null,
+      });
+      setEditRoomId(null);
+      fetchRooms();
+    } else {
+      if (response.status === 401) {
+        setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
+        logout();
+        navigate("/login");
+      } else if (response.status === 403) {
+        setError("No tienes permisos para realizar esta acción.");
+      } else {
+        setError(res.message || `Error al ${editRoomId ? "actualizar" : "agregar"} habitación`);
+      }
+    }
+  } catch (err) {
+    setError(`Error al ${editRoomId ? "actualizar" : "agregar"} habitación: ${err.message}`);
+  }
+};
+
 
   const handleEditRoom = (room) => {
     setEditRoomId(room._id);
@@ -233,13 +255,13 @@ const fetchReservations = async () => {
             Ver/Editar Reservas
           </Dropdown.Item>
           <Dropdown.Item onClick={async () => {
-  setActiveSection("availability");
-  await handleInitAvailability();
-  await fetchRooms();
-}}>
-  Ampliar disponibilidad
-</Dropdown.Item>
-          
+            setActiveSection("availability");
+            await handleInitAvailability();
+            await fetchRooms();
+          }}>
+            Ampliar disponibilidad
+          </Dropdown.Item>
+
         </Dropdown.Menu>
       </Dropdown>
 
@@ -267,7 +289,7 @@ const fetchReservations = async () => {
                   <Form.Label>Tipo</Form.Label>
                   <Form.Select name="type" value={newRoom.type} onChange={handleRoomChange} required>
                     <option value="">Selecciona un tipo</option>
-                    <option value="cabaña">Cabaña</option>
+                    <option value="cabana">Cabaña</option>
                   </Form.Select>
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -275,6 +297,7 @@ const fetchReservations = async () => {
                   <Form.Control
                     type="number"
                     name="price"
+                    min="0"
                     value={newRoom.price}
                     onChange={handleRoomChange}
                     required
@@ -294,6 +317,8 @@ const fetchReservations = async () => {
                   <Form.Control
                     type="number"
                     name="capacity"
+                    min="0"
+                    max="10"
                     value={newRoom.capacity}
                     onChange={handleRoomChange}
                     required
@@ -372,8 +397,10 @@ const fetchReservations = async () => {
                         <Button variant="secondary" size="sm" onClick={() => handleEditRoom(room)}>
                           Editar
                         </Button>{" "}
-                        <Button variant="danger" size="sm" onClick={() => handleDeleteRoom(room._id)}>
-                          Deshabilitar
+                        <Button variant={room.isAvailable ? "danger" : "success"} size="sm" onClick={() => handleDeleteRoom(room._id)}>
+                          {
+                            room.isAvailable ? "Deshabilitar" : "Habilitar" 
+                          }
                         </Button>
                       </td>
                     </tr>
@@ -431,45 +458,45 @@ const fetchReservations = async () => {
         </Row>
       )}
 
-    
-      {activeSection === "reservations" && (
-  <Row className="mb-4">
-    <Col>
-      <ReservationsPanel
-        API_URL={API_URL}
-        auth={auth} // 👈 CAMBIADO de authToken a auth
-        reservations={reservations}
-        refreshReservations={fetchReservations}
-      />
-    </Col>
-  </Row>
-)}
 
-{activeSection === "availability" && (
-  <Row className="mb-4">
-    <Col>
-      <h3>Disponibilidad Actualizada</h3>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>N° Habitación</th>
-            <th>Disponible</th>
-            <th>Última Actualización</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rooms.map((room) => (
-            <tr key={room._id}>
-              <td>{room.roomNumber}</td>
-              <td>{room.isAvailable ? "Sí" : "No"}</td>
-              <td>{room.updatedAt ? new Date(room.updatedAt).toLocaleString() : "N/A"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </Col>
-  </Row>
-)}
+      {activeSection === "reservations" && (
+        <Row className="mb-4">
+          <Col>
+            <ReservationsPanel
+              API_URL={API_URL}
+              auth={auth} // 👈 CAMBIADO de authToken a auth
+              reservations={reservations}
+              refreshReservations={fetchReservations}
+            />
+          </Col>
+        </Row>
+      )}
+
+      {activeSection === "availability" && (
+        <Row className="mb-4">
+          <Col>
+            <h3>Disponibilidad Actualizada</h3>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>N° Habitación</th>
+                  <th>Disponible</th>
+                  <th>Última Actualización</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rooms.map((room) => (
+                  <tr key={room._id}>
+                    <td>{room.roomNumber}</td>
+                    <td>{room.isAvailable ? "Sí" : "No"}</td>
+                    <td>{room.updatedAt ? new Date(room.updatedAt).toLocaleString() : "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Col>
+        </Row>
+      )}
 
 
 
