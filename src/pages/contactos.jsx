@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useState } from "react";
 import * as yup from "yup";
 import "./styles/contacto.css";
 import { API_URL } from "../CONFIG/api";
@@ -21,6 +22,8 @@ const Contactos = () => {
     reset,
     formState: { errors, isSubmitSuccessful },
   } = useForm({ resolver: yupResolver(schema) });
+  const [formVisible, setFormVisible] = useState(true);
+
 
   const onSubmit = async (data) => {
     try {
@@ -33,7 +36,12 @@ const Contactos = () => {
       });
 
       if (response.ok) {
-        reset();
+        reset({
+  name: "",
+  email: "",
+  phone: "",
+  message: "",
+});
        
       } else {
         const errData = await response.json();

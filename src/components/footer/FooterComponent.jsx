@@ -6,7 +6,7 @@ import "./footer.css";
 
 export const FooterComponent = () => {
   return (
-    <footer className="footer py-8 mt-16 text-center text-sm">
+    <footer className="footer py-2 mt-0 text-center text-sm">
       <div className="max-w-6xl mx-auto px-6 ">
         <p className="text-white">&copy; 2025 Cabañas Luz de la Cumbre. Todos los derechos reservados.</p>
         

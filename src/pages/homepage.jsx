@@ -37,7 +37,7 @@ const HomePage = () => {
       const data = await response.json();
 
       // ✅ Filtrar solo las disponibles
-      const disponibles = data.filter(cabana => cabana.isAvailable !== false);
+      const disponibles = data.data.filter(cabana => cabana.isAvailable !== false);
 
       const cabanasConURLs = disponibles.map(cabana => ({
         ...cabana,

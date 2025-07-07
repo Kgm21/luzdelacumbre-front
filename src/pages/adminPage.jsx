@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../CONFIG/api";
 import ReservationsPanel from "../components/BookingPanel";
 import axios from "axios";
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
@@ -36,6 +37,7 @@ const AdminPage = () => {
     fetchReservations();
   }
 }, [auth.isAuthenticated, auth.role, auth.token, navigate]);
+
 const handleInitAvailability = async () => {
   console.log('Token:', auth.token);
   try {
@@ -82,12 +84,13 @@ const fetchReservations = async () => {
       const res = await fetch(`${API_URL}/api/rooms`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
+      const data = await res.json();
+      
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.message || "Error al cargar habitaciones");
       }
-      const data = await res.json();
-      setRooms(data);
+      
+      setRooms(data.data);
     } catch (err) {
       setError(err.message);
     }
@@ -237,9 +240,10 @@ const fetchReservations = async () => {
           <Dropdown.Item onClick={() => setActiveSection("reservations")}>
             Ver/Editar Reservas
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => {
+          <Dropdown.Item onClick={async () => {
   setActiveSection("availability");
-  handleInitAvailability();
+  await handleInitAvailability();
+  await fetchRooms();
 }}>
   Ampliar disponibilidad
 </Dropdown.Item>
@@ -448,6 +452,33 @@ const fetchReservations = async () => {
     </Col>
   </Row>
 )}
+
+{activeSection === "availability" && (
+  <Row className="mb-4">
+    <Col>
+      <h3>Disponibilidad Actualizada</h3>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>N° Habitación</th>
+            <th>Disponible</th>
+            <th>Última Actualización</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rooms.map((room) => (
+            <tr key={room._id}>
+              <td>{room.roomNumber}</td>
+              <td>{room.isAvailable ? "Sí" : "No"}</td>
+              <td>{room.updatedAt ? new Date(room.updatedAt).toLocaleString() : "N/A"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </Col>
+  </Row>
+)}
+
 
 
     </Container>

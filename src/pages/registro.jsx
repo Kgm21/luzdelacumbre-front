@@ -126,7 +126,7 @@ const handleSubmit = async (e) => {
         password: "",
         confirmPassword: "",
       });
-      setTimeout(() => navigate("/reservas"), 2000);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setServerError(err.message || 'Error al conectar con el servidor');
       console.error('Error en registro:', err);
