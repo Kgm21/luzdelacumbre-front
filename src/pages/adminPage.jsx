@@ -1,482 +1,287 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Form, Table, Alert, Dropdown } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { API_URL } from "../CONFIG/api";
-import ReservationsPanel from "../components/BookingPanel";
+import { Container, Row, Col, Button, Alert, Nav, Table } from "react-bootstrap";
 import axios from "axios";
 
+import UsersList from "../components/Admin/resources/usuarios/UsersList";
+import UsersCreate from "../components/Admin/resources/usuarios/UsersCreate";
+import UsersEdit from "../components/Admin/resources/usuarios/UsersEdit";
+
+import RoomsList from "../components/Admin/resources/rooms/RoomsList";
+import RoomsCreate from "../components/Admin/resources/rooms/RoomsCreate";
+import RoomsEdit from "../components/Admin/resources/rooms/RoomsEdit";
+
+import BookingsList from "../components/Admin/resources/bookings/BookingsList";
+import BookingsCreate from "../components/Admin/resources/bookings/BookingsCreate";
+import BookingsEdit from "../components/Admin/resources/bookings/BookingsEdit";
+
+import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../CONFIG/api";
+
 const AdminPage = () => {
-  const navigate = useNavigate();
   const { auth, logout } = useAuth();
 
-  const [newRoom, setNewRoom] = useState({
-    roomNumber: "",
-    type: "",
-    price: "",
-    description: "",
-    capacity: "",
-    isAvailable: true,
-    photos: null,
-  });
-  const [editRoomId, setEditRoomId] = useState(null);
-  const [rooms, setRooms] = useState([]);
+  const [activeSection, setActiveSection] = useState("users");
+
+  // Estados para cada recurso (usuarios, habitaciones, reservas)
   const [users, setUsers] = useState([]);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [activeSection, setActiveSection] = useState(null);
-  const [reservations, setReservations] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [errorUsers, setErrorUsers] = useState("");
+  const [editUserId, setEditUserId] = useState(null);
 
-  useEffect(() => {
-    if (!auth.isAuthenticated || auth.role !== "admin") {
-      navigate("/login");
-    } else {
-      fetchRooms();
-      fetchUsers();
-      fetchReservations();
-    }
-  }, [auth.isAuthenticated, auth.role, auth.token, navigate]);
+  const [rooms, setRooms] = useState([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const [errorRooms, setErrorRooms] = useState("");
+  const [editRoomId, setEditRoomId] = useState(null);
 
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [errorBookings, setErrorBookings] = useState("");
+  const [editBookingData, setEditBookingData] = useState(null);
+
+  const [info, setInfo] = useState(false)
+
+
+  // -------- Función para inicializar disponibilidad --------
   const handleInitAvailability = async () => {
     try {
-      const response = await axios.post('/api/availability/init');
-      const data = response.json()
-      return data
+      const response = await axios.post(`${API_URL}/api/availability/init`, {}, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      setInfo(true)
+      return response.data;
     } catch (error) {
-      console.log(error)
+      console.error("Error al inicializar disponibilidad:", error);
     }
   };
 
-  const fetchReservations = async () => {
-    if (!auth?.token) {
-      return;
-    }
-
+  // Fetchers
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    setErrorUsers("");
     try {
-      const res = await fetch(`${API_URL}/api/bookings`, {
+      const res = await fetch(`${API_URL}/api/usuarios`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-
-      if (!res.ok) throw new Error("Error cargando reservas");
       const data = await res.json();
-      setReservations(data);
-    } catch (error) {
-      console.error("Error fetching reservations:", error);
+      if (!res.ok) throw new Error(data.message || "Error al cargar usuarios");
+
+      setUsers(data.usuarios);
+    } catch (err) {
+      console.error(err);
+      setErrorUsers(err.message);
+      setUsers([]);
     }
+    setLoadingUsers(false);
   };
 
 
   const fetchRooms = async () => {
+    setLoadingRooms(true);
+    setErrorRooms("");
     try {
       const res = await fetch(`${API_URL}/api/rooms`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error al cargar habitaciones");
-      }
-
-      setRooms(data.data);
+      if (!res.ok) throw new Error(data.message || "Error al cargar habitaciones");
+      setRooms(data.data || []);
     } catch (err) {
-      setError(err.message);
+      setErrorRooms(err.message);
     }
+    setLoadingRooms(false);
   };
 
-  const fetchUsers = async () => {
+  const fetchBookings = async () => {
+    setLoadingBookings(true);
+    setErrorBookings("");
     try {
-      const res = await fetch(`${API_URL}/api/usuarios?pagina=0&limite=50`, {
+      const res = await fetch(`${API_URL}/api/bookings`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
       const data = await res.json();
-      setUsers(data.usuarios);
+      if (!res.ok) throw new Error(data.message || "Error al cargar reservas");
+      setBookings(data.data || []);
     } catch (err) {
-      setError("Error al cargar usuarios");
+      setErrorBookings(err.message);
     }
+    setLoadingBookings(false);
   };
 
-  const handleRoomChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    if (type === "checkbox") {
-      setNewRoom((prev) => ({ ...prev, [name]: checked }));
-    } else if (type === "file") {
-      setNewRoom((prev) => ({ ...prev, [name]: files }));
-    } else {
-      setNewRoom((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleAddOrUpdateRoom = async (e) => {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
-
-  const method = editRoomId ? "PUT" : "POST";
-  const url = editRoomId ? `${API_URL}/api/rooms/${editRoomId}` : `${API_URL}/api/rooms`;
-
-  let response;
-
-  try {
-    
-    if (newRoom.photos && newRoom.photos.length > 0) {
-      const formData = new FormData();
-      formData.append("roomNumber", newRoom.roomNumber);
-      formData.append("type", newRoom.type);
-      formData.append("price", Number(newRoom.price));
-      formData.append("description", newRoom.description);
-      formData.append("capacity", Number(newRoom.capacity));
-      formData.append("isAvailable", String(newRoom.isAvailable));
-
-      Array.from(newRoom.photos).forEach((photo) => {
-        formData.append("photos", photo);
-      });
-
-      response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-         
-        },
-        body: formData,
-      });
-    } else {
-      
-      response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          roomNumber: newRoom.roomNumber,
-          type: newRoom.type,
-          price: Number(newRoom.price),
-          description: newRoom.description,
-          capacity: Number(newRoom.capacity),
-          isAvailable: newRoom.isAvailable,
-        }),
-      });
-    }
-
-    const res = await response.json();
-
-    if (response.ok) {
-      setSuccess(editRoomId ? "Habitación actualizada" : "Habitación agregada con éxito");
-      setNewRoom({
-        roomNumber: "",
-        type: "",
-        price: "",
-        description: "",
-        capacity: "",
-        isAvailable: true,
-        photos: null,
-      });
-      setEditRoomId(null);
-      fetchRooms();
-    } else {
-      if (response.status === 401) {
-        setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
-        logout();
-        navigate("/login");
-      } else if (response.status === 403) {
-        setError("No tienes permisos para realizar esta acción.");
-      } else {
-        setError(res.message || `Error al ${editRoomId ? "actualizar" : "agregar"} habitación`);
-      }
-    }
-  } catch (err) {
-    setError(`Error al ${editRoomId ? "actualizar" : "agregar"} habitación: ${err.message}`);
-  }
-};
-
-
-  const handleEditRoom = (room) => {
-    setEditRoomId(room._id);
-    setNewRoom({
-      roomNumber: room.roomNumber,
-      type: room.type || "",
-      price: room.price || "",
-      description: room.description || "",
-      capacity: room.capacity || "",
-      isAvailable: room.isAvailable,
-      photos: null,
-    });
-    setError("");
-    setSuccess("");
-  };
-
-  const handleDeleteRoom = async (roomId) => {
-    setError("");
-    setSuccess("");
-    try {
-      const response = await fetch(`${API_URL}/api/rooms/${roomId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${auth.token}` },
-      });
-      const res = await response.json();
-      if (response.ok) {
+  // Cargar datos según sección activa
+  useEffect(() => {
+    if (!auth?.token) return;
+    switch (activeSection) {
+      case "users":
+        fetchUsers();
+        break;
+      case "rooms":
         fetchRooms();
-        setSuccess("Habitación deshabilitada");
-      } else {
-        if (response.status === 401) {
-          setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
-          logout();
-          navigate("/login");
-        } else if (response.status === 403) {
-          setError("No tienes permisos para realizar esta acción.");
-        } else {
-          setError(res.message || "Error al deshabilitar habitación");
-        }
-      }
-    } catch (err) {
-      setError(`Error al deshabilitar habitación: ${err.message}`);
+        break;
+      case "bookings":
+        fetchBookings();
+        break;
+      case "availability":
+        handleInitAvailability().then(fetchRooms);
+        break;
+      default:
+        break;
     }
+  }, [activeSection, auth]);
+
+  // ---- Handlers para edición (usuarios, habitaciones, reservas) ----
+  // Usuarios
+  const handleUserUpdated = () => {
+    fetchUsers();
+    setEditUserId(null);
+  };
+  const handleUserEditClick = (id) => {
+    setEditUserId(id);
+  };
+  const handleUserCancelEdit = () => {
+    setEditUserId(null);
+  };
+
+  // Habitaciones
+  const handleRoomUpdated = () => {
+    fetchRooms();
+    setEditRoomId(null);
+  };
+  const handleRoomEditClick = (room) => {
+    setEditRoomId(room._id);
+  };
+  const handleRoomCancelEdit = () => {
+    setEditRoomId(null);
+  };
+
+  // Reservas
+  const handleBookingUpdated = () => {
+    fetchBookings();
+    setEditBookingData(null);
+  };
+  const handleBookingEditClick = (booking) => {
+    setEditBookingData(booking);
+  };
+  const handleBookingCancelEdit = () => {
+    setEditBookingData(null);
+  };
+  const handleBookingCreated = () => {
+    fetchBookings();
   };
 
   return (
-    <Container>
-      <h2 className="my-4">Panel de Administración</h2>
-      <Button variant="danger" onClick={logout} className="mb-3">
-        Cerrar Sesión
-      </Button>
+    <Container className="my-4">
+      <h2>Panel de Administración</h2>
 
-      <Dropdown className="mb-4">
-        <Dropdown.Toggle variant="primary" id="dropdown-sections">
-          Seleccionar Sección
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-          <Dropdown.Item onClick={() => setActiveSection("rooms")}>
-            Ver/Editar Habitaciones
-          </Dropdown.Item>
-          <Dropdown.Item onClick={() => setActiveSection("users")}>
-            Ver/Editar Usuarios
-          </Dropdown.Item>
-          <Dropdown.Item onClick={() => setActiveSection("reservations")}>
-            Ver/Editar Reservas
-          </Dropdown.Item>
-          <Dropdown.Item onClick={async () => {
-            setActiveSection("availability");
-            await handleInitAvailability();
-            await fetchRooms();
-          }}>
-            Ampliar disponibilidad
-          </Dropdown.Item>
+      {/* Menú principal */}
+      <Nav variant="tabs" activeKey={activeSection} onSelect={setActiveSection}>
+        <Nav.Item>
+          <Nav.Link eventKey="users">Usuarios</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="rooms">Habitaciones</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="bookings">Reservas</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="availability">Disponibilidad</Nav.Link>
+        </Nav.Item>
+      </Nav>
 
-        </Dropdown.Menu>
-      </Dropdown>
+      <Row className="mt-3">
+        {/* Usuarios */}
+        {activeSection === "users" && (
+          <>
+            <Col xs={12} md={editUserId ? 8 : 12} className="mb-3">
+              <UsersList
+                users={users}
+                onEdit={handleUserEditClick}
+                auth={auth}
+                logout={logout}
+                fetchUsers={fetchUsers}
+              />
+            </Col>
+            {editUserId && (
+              <Col xs={12} md={4}>
+                <Button variant="secondary" className="mb-3" onClick={handleUserCancelEdit}>
+                  Cancelar Edición
+                </Button>
+                <UsersEdit
+                  userId={editUserId}
+                  auth={auth}
+                  onUserUpdated={handleUserUpdated}
+                  onCancel={handleUserCancelEdit}
+                />
+              </Col>
+            )}
+          </>
+        )}
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-      {editRoomId && <Alert variant="info">Estás editando una habitación</Alert>}
+        {activeSection === "rooms" && (
+          <>
+            <Col xs={12} md={editRoomId ? 8 : 12} className="mb-3">
+              <RoomsList
+                rooms={rooms}
+                onEditRoom={handleRoomEditClick}
+                auth={auth}
+                refreshRooms={fetchRooms}
+              />
+            </Col>
+            {editRoomId && (
+              <Col xs={12} md={4}>
+                <Button variant="secondary" className="mb-3" onClick={handleRoomCancelEdit}>
+                  Cancelar Edición
+                </Button>
+                <RoomsEdit
+                  roomId={editRoomId}
+                  auth={auth}
+                  onRoomUpdated={handleRoomUpdated}
+                />
+              </Col>
+            )}
+          </>
+        )}
 
-      {activeSection === "rooms" && (
-        <>
-          <Row className="mb-4">
-            <Col>
-              <h3>{editRoomId ? "Editar Habitación" : "Agregar Nueva Habitación"}</h3>
-              <Form onSubmit={handleAddOrUpdateRoom}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Número</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="roomNumber"
-                    value={newRoom.roomNumber}
-                    onChange={handleRoomChange}
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tipo</Form.Label>
-                  <Form.Select name="type" value={newRoom.type} onChange={handleRoomChange} required>
-                    <option value="">Selecciona un tipo</option>
-                    <option value="cabana">Cabaña</option>
-                  </Form.Select>
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Precio</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="price"
-                    min="0"
-                    value={newRoom.price}
-                    onChange={handleRoomChange}
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Descripción</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="description"
-                    value={newRoom.description}
-                    onChange={handleRoomChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Capacidad</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="capacity"
-                    min="0"
-                    max="10"
-                    value={newRoom.capacity}
-                    onChange={handleRoomChange}
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="checkbox"
-                    label="¿Está disponible?"
-                    name="isAvailable"
-                    checked={newRoom.isAvailable}
-                    onChange={handleRoomChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Fotos</Form.Label>
-                  <Form.Control
-                    type="file"
-                    name="photos"
-                    onChange={handleRoomChange}
-                    multiple
-                    accept="image/jpeg,image/png"
-                  />
-                </Form.Group>
-                <Button variant="primary" type="submit">
-                  {editRoomId ? "Guardar Cambios" : "Agregar"}
-                </Button>{" "}
-                {editRoomId && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setEditRoomId(null);
-                      setNewRoom({
-                        roomNumber: "",
-                        type: "",
-                        price: "",
-                        description: "",
-                        capacity: "",
-                        isAvailable: true,
-                        photos: null,
-                      });
-                      setError("");
-                      setSuccess("");
-                    }}
-                  >
-                    Cancelar
+        {activeSection === "bookings" && (
+          <>
+            <Col xs={12} md={editBookingData ? 8 : 12} className="mb-3">
+              <BookingsList
+                bookings={bookings}
+                onEditBooking={handleBookingEditClick}
+                auth={auth}
+                logout={logout}
+                refreshBookings={fetchBookings}
+              />
+            </Col>
+            <Col xs={12} md={4}>
+              {editBookingData ? (
+                <>
+                  <Button variant="secondary" className="mb-3" onClick={handleBookingCancelEdit}>
+                    Cancelar Edición
                   </Button>
-                )}
-              </Form>
+                  <BookingsEdit
+                    auth={auth}
+                    bookingData={editBookingData}
+                    onBookingUpdated={handleBookingUpdated}
+                    onCancel={handleBookingCancelEdit}
+                  />
+                </>
+              ) : (
+                <BookingsCreate
+                  auth={auth}
+                  onBookingCreated={handleBookingCreated}
+                />
+              )}
             </Col>
-          </Row>
-
-          <Row className="mb-4">
-            <Col>
-              <h3>Lista de Habitaciones</h3>
-              <Table striped bordered hover>
-                <thead>
-                  <tr>
-                    <th>Número</th>
-                    <th>Tipo</th>
-                    <th>Precio</th>
-                    <th>Capacidad</th>
-                    <th>Disponible</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rooms.map((room) => (
-                    <tr key={room._id}>
-                      <td>{room.roomNumber}</td>
-                      <td>{room.type}</td>
-                      <td>${room.price}</td>
-                      <td>{room.capacity}</td>
-                      <td>{room.isAvailable ? "Sí" : "No"}</td>
-                      <td>
-                        <Button variant="secondary" size="sm" onClick={() => handleEditRoom(room)}>
-                          Editar
-                        </Button>{" "}
-                        <Button variant={room.isAvailable ? "danger" : "success"} size="sm" onClick={() => handleDeleteRoom(room._id)}>
-                          {
-                            room.isAvailable ? "Deshabilitar" : "Habilitar" 
-                          }
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Col>
-          </Row>
-        </>
-      )}
-
-      {activeSection === "users" && (
-        <Row className="mb-4">
-          <Col>
-            <h3>Lista de Usuarios</h3>
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user._id}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>{user.role}</td>
-                    <td>{user.isActive ? "Activo" : "Suspendido"}</td>
-                    <td>
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        disabled={!user.isActive}
-                        onClick={() => alert("Función de editar usuario pendiente")}
-                      >
-                        Editar
-                      </Button>{" "}
-                      <Button
-                        variant={user.isActive ? "danger" : "success"}
-                        size="sm"
-                        onClick={() => alert("Función de activar/desactivar usuario pendiente")}
-                      >
-                        {user.isActive ? "Suspender" : "Activar"}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-        </Row>
-      )}
-
-
-      {activeSection === "reservations" && (
-        <Row className="mb-4">
-          <Col>
-            <ReservationsPanel
-              API_URL={API_URL}
-              auth={auth} // 👈 CAMBIADO de authToken a auth
-              reservations={reservations}
-              refreshReservations={fetchReservations}
-            />
-          </Col>
-        </Row>
-      )}
-
+          </>
+        )}
+      </Row>
       {activeSection === "availability" && (
         <Row className="mb-4">
           <Col>
             <h3>Disponibilidad Actualizada</h3>
-            <Table striped bordered hover>
+            {errorRooms && <Alert variant="danger">{errorRooms}</Alert>}
+            {info ? (<Table striped bordered hover>
               <thead>
                 <tr>
                   <th>N° Habitación</th>
@@ -493,14 +298,12 @@ const AdminPage = () => {
                   </tr>
                 ))}
               </tbody>
-            </Table>
+            </Table>) : (<p>Cargando Disponibilidad...</p>)}
+
           </Col>
         </Row>
       )}
-
-
-
-    </Container>
+    </Container >
   );
 };
 
