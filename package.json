@@ -16,6 +16,7 @@
     "axios": "^1.10.0",
     "bootstrap": "^5.3.7",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "glightbox": "^3.3.1",
     "multer": "^2.0.1",
     "ra-data-simple-rest": "^5.9.0",
