@@ -1,0 +1,34 @@
+
+    /* Paleta de Colores */
+    :root {
+      --marron: #65523c;
+      --beige: #FAF3E0;
+      --verde: #3C6E47;
+      --gris: #1E1E1E;
+      --dorado: #ccb648;
+      --rosa-palido: #eecfce; /* Nuevo color para el botón de iniciar sesión */
+      --gris-oscuro-transparente: rgba(30, 30, 30, 0.8); /* Para el logo, si se superpone */
+      --grisclaro: #D3D3D3;
+      --negro: #0000;
+           
+
+
+    }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.content {
+  flex: 1;
+}
+
+    
