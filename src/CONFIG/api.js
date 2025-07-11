@@ -1,0 +1,1 @@
+export const API_URL = 'https://luzdelacumbre-back.onrender.com'; // URL base del backend
