@@ -1,7 +1,6 @@
 import React from "react";
-import { Table, Button, Alert } from "react-bootstrap";
+import { Table, Button, Alert, Badge } from "react-bootstrap";
 
-// Función utilitaria para formatear fechas en UTC sin perder un día
 function formatDateUTC(dateStr) {
   if (!dateStr) return "Sin fecha";
   const d = new Date(dateStr);
@@ -13,6 +12,16 @@ function formatDateUTC(dateStr) {
         month: "2-digit",
         day: "2-digit",
       });
+}
+
+// Función para formatear números como moneda ARS
+function formatPrice(price) {
+  if (price == null) return "-";
+  return price.toLocaleString("es-AR", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  });
 }
 
 const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
@@ -33,20 +42,23 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
     }
   };
 
-  // Obtener fecha actual
   const ahora = new Date();
 
-  // Filtrar reservas según si se muestran las pasadas o no
   const reservasFiltradas = bookings.filter((booking) =>
     mostrarPasadas
-      ? new Date(booking.checkOutDate) < ahora // solo pasadas
-      : new Date(booking.checkOutDate) >= ahora // solo actuales o futuras
+      ? new Date(booking.checkOutDate) < ahora
+      : new Date(booking.checkOutDate) >= ahora
   );
 
-  // Ordenar por checkInDate
   const sortedBookings = [...reservasFiltradas].sort(
     (a, b) => new Date(a.checkInDate) - new Date(b.checkInDate)
   );
+
+  const isActive = (booking) => {
+    const checkIn = new Date(booking.checkInDate);
+    const checkOut = new Date(booking.checkOutDate);
+    return ahora >= checkIn && ahora <= checkOut;
+  };
 
   return (
     <div>
@@ -70,6 +82,7 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
             <th>Check-In</th>
             <th>Check-Out</th>
             <th>Pasajeros</th>
+            <th>Precio Total</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -77,37 +90,48 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
         <tbody>
           {sortedBookings.length === 0 ? (
             <tr>
-              <td colSpan="7" className="text-center">
+              <td colSpan="8" className="text-center">
                 No hay reservas para mostrar.
               </td>
             </tr>
           ) : (
-            sortedBookings.map((booking) => (
-              <tr key={booking._id}>
-                <td>{booking.userId?.name || "-"}</td>
-                <td>{booking.roomId?.roomNumber || "-"}</td>
-                <td>{formatDateUTC(booking.checkInDate)}</td>
-                <td>{formatDateUTC(booking.checkOutDate)}</td>
-                <td>{booking.passengersCount ?? "-"}</td>
-                <td>{booking.status || "-"}</td>
-                <td>
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    onClick={() => onEditBooking(booking)}
-                  >
-                    Editar
-                  </Button>{" "}
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(booking._id)}
-                  >
-                    Eliminar
-                  </Button>
-                </td>
-              </tr>
-            ))
+            sortedBookings.map((booking) => {
+              const active = isActive(booking);
+              return (
+                <tr key={booking._id} className={active ? "table-success" : ""}>
+                  <td>{booking.userId?.name || "-"}</td>
+                  <td>{booking.roomId?.roomNumber || "-"}</td>
+                  <td>{formatDateUTC(booking.checkInDate)}</td>
+                  <td>{formatDateUTC(booking.checkOutDate)}</td>
+                  <td>{booking.passengersCount ?? "-"}</td>
+                  <td>{formatPrice(booking.totalPrice)}</td>
+                  <td>
+                    {booking.status || "-"}{" "}
+                    {active && (
+                      <Badge bg="success" pill>
+                        ahora
+                      </Badge>
+                    )}
+                  </td>
+                  <td>
+                    <Button
+                      variant="warning"
+                      size="sm"
+                      onClick={() => onEditBooking(booking)}
+                    >
+                      Editar
+                    </Button>{" "}
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(booking._id)}
+                    >
+                      Eliminar
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </Table>
@@ -116,7 +140,4 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
 };
 
 export default BookingsList;
-
-
-
 
