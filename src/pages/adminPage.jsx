@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Alert, Nav, Table } from "react-bootstrap";
 import axios from "axios";
+import "./styles/adminPage.css"
 
 import UsersList from "../components/Admin/resources/usuarios/UsersList";
 import UsersCreate from "../components/Admin/resources/usuarios/UsersCreate";
@@ -22,7 +23,6 @@ const AdminPage = () => {
 
   const [activeSection, setActiveSection] = useState("users");
 
-  // Estados para cada recurso (usuarios, habitaciones, reservas)
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [errorUsers, setErrorUsers] = useState("");
@@ -38,55 +38,53 @@ const AdminPage = () => {
   const [errorBookings, setErrorBookings] = useState("");
   const [editBookingData, setEditBookingData] = useState(null);
 
-  const [info, setInfo] = useState(false)
+  const [contacts, setContacts] = useState([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [errorContacts, setErrorContacts] = useState("");
 
+  const [info, setInfo] = useState(false);
 
-  // -------- Función para inicializar disponibilidad --------
   const handleInitAvailability = async () => {
     try {
-      const response = await axios.post(`${API_URL}/api/availability/init`, {}, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      setInfo(true)
+      const response = await axios.post(
+        `${API_URL}/api/availability/init`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        }
+      );
+      setInfo(true);
       return response.data;
     } catch (error) {
       console.error("Error al inicializar disponibilidad:", error);
     }
   };
 
-  // Fetchers
   const fetchUsers = async () => {
     setLoadingUsers(true);
     setErrorUsers("");
     try {
-      const res = await fetch(`${API_URL}/api/usuarios`, {
+      const res = await axios.get(`${API_URL}/api/usuarios`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al cargar usuarios");
-
-      setUsers(data.usuarios);
+      setUsers(res.data.usuarios || []);
     } catch (err) {
-      console.error(err);
-      setErrorUsers(err.message);
+      setErrorUsers(err.response?.data?.message || err.message);
       setUsers([]);
     }
     setLoadingUsers(false);
   };
 
-
   const fetchRooms = async () => {
     setLoadingRooms(true);
     setErrorRooms("");
     try {
-      const res = await fetch(`${API_URL}/api/rooms`, {
+      const res = await axios.get(`${API_URL}/api/rooms`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al cargar habitaciones");
-      setRooms(data.data || []);
+      setRooms(res.data.data || []);
     } catch (err) {
-      setErrorRooms(err.message);
+      setErrorRooms(err.response?.data?.message || err.message);
     }
     setLoadingRooms(false);
   };
@@ -95,19 +93,37 @@ const AdminPage = () => {
     setLoadingBookings(true);
     setErrorBookings("");
     try {
-      const res = await fetch(`${API_URL}/api/bookings`, {
+      const res = await axios.get(`${API_URL}/api/bookings`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al cargar reservas");
-      setBookings(data.data || []);
+      setBookings(res.data.data || []);
     } catch (err) {
-      setErrorBookings(err.message);
+      setErrorBookings(err.response?.data?.message || err.message);
     }
     setLoadingBookings(false);
   };
 
-  // Cargar datos según sección activa
+const fetchContacts = async () => {
+  setLoadingContacts(true);
+  setErrorContacts("");
+  try {
+    const res = await axios.get(`${API_URL}/api/contact`, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+
+    const contactsArray = res.data || [];
+
+   contactsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+
+    setContacts(contactsArray);
+  } catch (err) {
+    setErrorContacts(err.response?.data?.message || err.message);
+  }
+  setLoadingContacts(false);
+};
+
+
   useEffect(() => {
     if (!auth?.token) return;
     switch (activeSection) {
@@ -120,16 +136,43 @@ const AdminPage = () => {
       case "bookings":
         fetchBookings();
         break;
+      case "contact":
+        fetchContacts();
+        break;
       case "availability":
-        handleInitAvailability().then(fetchRooms);
+        setInfo(false); // Reset info al cambiar a disponibilidad
+        handleInitAvailability().then(() => {
+          fetchRooms().then(() => {
+            setInfo(true);
+          });
+        });
         break;
       default:
         break;
     }
   }, [activeSection, auth]);
 
-  // ---- Handlers para edición (usuarios, habitaciones, reservas) ----
-  // Usuarios
+  const handleDeleteContact = async (id) => {
+  if (!id) return;
+  if (!window.confirm("¿Estás seguro de que deseas eliminar este contacto?")) return;
+
+  try {
+    // Opcional: puedes mostrar una animación o estado de cargando aquí
+    await axios.delete(`${API_URL}/api/contact/${id}`, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    alert("Contacto eliminado correctamente.");
+    fetchContacts(); // Actualiza la lista
+  } catch (error) {
+    console.error("Error al eliminar contacto:", error);
+    alert(
+      error.response?.data?.message ||
+        "Ocurrió un error al intentar eliminar el contacto."
+    );
+  }
+};
+
+
   const handleUserUpdated = () => {
     fetchUsers();
     setEditUserId(null);
@@ -141,7 +184,6 @@ const AdminPage = () => {
     setEditUserId(null);
   };
 
-  // Habitaciones
   const handleRoomUpdated = () => {
     fetchRooms();
     setEditRoomId(null);
@@ -153,7 +195,6 @@ const AdminPage = () => {
     setEditRoomId(null);
   };
 
-  // Reservas
   const handleBookingUpdated = () => {
     fetchBookings();
     setEditBookingData(null);
@@ -172,7 +213,6 @@ const AdminPage = () => {
     <Container className="my-4">
       <h2>Panel de Administración</h2>
 
-      {/* Menú principal */}
       <Nav variant="tabs" activeKey={activeSection} onSelect={setActiveSection}>
         <Nav.Item>
           <Nav.Link eventKey="users">Usuarios</Nav.Link>
@@ -184,12 +224,15 @@ const AdminPage = () => {
           <Nav.Link eventKey="bookings">Reservas</Nav.Link>
         </Nav.Item>
         <Nav.Item>
+          <Nav.Link eventKey="contact">Contactos</Nav.Link>
+        </Nav.Item>
+
+        <Nav.Item>
           <Nav.Link eventKey="availability">Disponibilidad</Nav.Link>
         </Nav.Item>
       </Nav>
 
       <Row className="mt-3">
-        {/* Usuarios */}
         {activeSection === "users" && (
           <>
             <Col xs={12} md={editUserId ? 8 : 12} className="mb-3">
@@ -276,34 +319,91 @@ const AdminPage = () => {
           </>
         )}
       </Row>
+
       {activeSection === "availability" && (
         <Row className="mb-4">
           <Col>
             <h3>Disponibilidad Actualizada</h3>
             {errorRooms && <Alert variant="danger">{errorRooms}</Alert>}
-            {info ? (<Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>N° Habitación</th>
-                  <th>Disponible</th>
-                  <th>Última Actualización</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rooms.map((room) => (
-                  <tr key={room._id}>
-                    <td>{room.roomNumber}</td>
-                    <td>{room.isAvailable ? "Sí" : "No"}</td>
-                    <td>{room.updatedAt ? new Date(room.updatedAt).toLocaleString() : "N/A"}</td>
+            {loadingRooms || !info ? (
+              <p>Cargando disponibilidad...</p>
+            ) : (
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>N° Habitación</th>
+                    <th>Disponible</th>
+                    <th>Última Actualización</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>) : (<p>Cargando Disponibilidad...</p>)}
-
+                </thead>
+                <tbody>
+                  {rooms.map((room) => (
+                    <tr key={room._id}>
+                      <td>{room.roomNumber}</td>
+                      <td>{room.isAvailable ? "Sí" : "No"}</td>
+                      <td>{room.updatedAt ? new Date(room.updatedAt).toLocaleString() : "N/A"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            )}
           </Col>
         </Row>
       )}
-    </Container >
+
+      {activeSection === "contact" && (
+        <Row>
+          <Col>
+            <h3>Contactos</h3>
+            {loadingContacts && <p>Cargando contactos...</p>}
+            {errorContacts && <Alert variant="danger">{errorContacts}</Alert>}
+            {!loadingContacts && !errorContacts && contacts.length === 0 && <p>No hay contactos.</p>}
+            {contacts.length > 0 && (
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Mensaje</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+  {contacts.map((contact) => (
+    <tr key={contact._id}>
+      <td>{contact.name}</td>
+      <td>{contact.email}</td>
+      <td>{contact.message}</td>
+      <td>{contact.createdAt ? new Date(contact.createdAt).toLocaleString() : "N/A"}</td>
+      <td>
+        <Button
+          variant="primary"
+  size="sm"
+  className="me-2 btn-contact-action"
+  onClick={() => alert(`Se respondió a ${contact.name}`)}
+        >
+          Responder
+        </Button>
+        <Button
+          variant="danger"
+  size="sm"
+  className="btn-contact-action"
+  onClick={() => handleDeleteContact(contact._id)}
+        >
+          Eliminar
+        </Button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
+              </Table>
+            )}
+          </Col>
+        </Row>
+      )}
+    </Container>
   );
 };
 
