@@ -27,7 +27,7 @@ const RoomsList = ({ rooms, auth, onEditRoom, refreshRooms }) => {
     <div>
       <h4>Lista de Habitaciones</h4>
       {error && <Alert variant="danger">{error}</Alert>}
-      <Table striped bordered hover>
+      <Table striped bordered hover responsive>
         <thead>
           <tr>
             <th>Número</th>

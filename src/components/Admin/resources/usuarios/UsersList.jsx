@@ -39,7 +39,7 @@ const UsersList = ({ users, onEdit, auth, logout, fetchUsers }) => {
       {error && <Alert variant="danger">{error}</Alert>}
       {loading && <Spinner animation="border" className="mb-2" />}
 
-      <Table striped bordered hover>
+      <Table striped bordered hover responsive>
         <thead>
           <tr>
             <th>Nombre</th>

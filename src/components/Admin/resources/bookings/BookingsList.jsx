@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Button, Alert, Badge } from "react-bootstrap";
 
+// Función para formatear fechas en UTC
 function formatDateUTC(dateStr) {
   if (!dateStr) return "Sin fecha";
   const d = new Date(dateStr);
@@ -14,7 +15,7 @@ function formatDateUTC(dateStr) {
       });
 }
 
-// Función para formatear números como moneda ARS
+// Función para formatear números como moneda
 function formatPrice(price) {
   if (price == null) return "-";
   return price.toLocaleString("es-AR", {
@@ -28,36 +29,44 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
   const [error, setError] = React.useState("");
   const [mostrarPasadas, setMostrarPasadas] = React.useState(false);
 
+  const ahora = new Date();
+
+  const reservasFiltradas = React.useMemo(() => {
+    return bookings.filter((booking) =>
+      mostrarPasadas
+        ? new Date(booking.checkOutDate) < ahora
+        : new Date(booking.checkOutDate) >= ahora
+    );
+  }, [bookings, mostrarPasadas, ahora]);
+
+  const sortedBookings = React.useMemo(() => {
+    return [...reservasFiltradas].sort(
+      (a, b) => new Date(a.checkInDate) - new Date(b.checkInDate)
+    );
+  }, [reservasFiltradas]);
+
+  const isActive = (booking) => {
+    const checkIn = new Date(booking.checkInDate);
+    const checkOut = new Date(booking.checkOutDate);
+    return ahora >= checkIn && ahora <= checkOut;
+  };
+
   const handleDelete = async (id) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar esta reserva?")) return;
+
     try {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/bookings/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${auth.token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al eliminar reserva");
+      if (!res.ok) {
+        throw new Error(data?.message || `Error ${res.status}: No se pudo eliminar`);
+      }
       refreshBookings();
     } catch (err) {
       setError(err.message);
     }
-  };
-
-  const ahora = new Date();
-
-  const reservasFiltradas = bookings.filter((booking) =>
-    mostrarPasadas
-      ? new Date(booking.checkOutDate) < ahora
-      : new Date(booking.checkOutDate) >= ahora
-  );
-
-  const sortedBookings = [...reservasFiltradas].sort(
-    (a, b) => new Date(a.checkInDate) - new Date(b.checkInDate)
-  );
-
-  const isActive = (booking) => {
-    const checkIn = new Date(booking.checkInDate);
-    const checkOut = new Date(booking.checkOutDate);
-    return ahora >= checkIn && ahora <= checkOut;
   };
 
   return (
@@ -67,6 +76,7 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
         <Button
           variant={mostrarPasadas ? "secondary" : "outline-secondary"}
           onClick={() => setMostrarPasadas(!mostrarPasadas)}
+          aria-pressed={mostrarPasadas}
         >
           {mostrarPasadas ? "Ver reservas actuales" : "Ver reservas pasadas"}
         </Button>
@@ -97,6 +107,13 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
           ) : (
             sortedBookings.map((booking) => {
               const active = isActive(booking);
+
+              const estadoColor = {
+                confirmada: "success",
+                cancelada: "danger",
+                pendiente: "warning",
+              };
+
               return (
                 <tr key={booking._id} className={active ? "table-success" : ""}>
                   <td>{booking.userId?.name || "-"}</td>
@@ -106,7 +123,12 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
                   <td>{booking.passengersCount ?? "-"}</td>
                   <td>{formatPrice(booking.totalPrice)}</td>
                   <td>
-                    {booking.status || "-"}{" "}
+                    <Badge
+                      bg={estadoColor[booking.status] || "secondary"}
+                      className="me-1"
+                    >
+                      {booking.status || "-"}
+                    </Badge>
                     {active && (
                       <Badge bg="success" pill>
                         ahora
@@ -117,6 +139,7 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
                     <Button
                       variant="warning"
                       size="sm"
+                      title="Editar reserva"
                       onClick={() => onEditBooking(booking)}
                     >
                       Editar
@@ -124,6 +147,7 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
                     <Button
                       variant="danger"
                       size="sm"
+                      title="Eliminar reserva"
                       onClick={() => handleDelete(booking._id)}
                     >
                       Eliminar
@@ -140,4 +164,3 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
 };
 
 export default BookingsList;
-
