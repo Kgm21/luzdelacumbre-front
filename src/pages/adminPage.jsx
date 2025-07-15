@@ -37,6 +37,7 @@ const AdminPage = () => {
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [errorBookings, setErrorBookings] = useState("");
   const [editBookingData, setEditBookingData] = useState(null);
+  const [availabilityEndDate, setAvailabilityEndDate] = useState(null);
 
   const [contacts, setContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
@@ -48,20 +49,23 @@ const [replyMessage, setReplyMessage] = useState("");
   const [info, setInfo] = useState(false);
 
   const handleInitAvailability = async () => {
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/availability/init`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }
-      );
-      setInfo(true);
-      return response.data;
-    } catch (error) {
-      console.error("Error al inicializar disponibilidad:", error);
-    }
-  };
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/availability/init`,
+      {},
+      { headers: { Authorization: `Bearer ${auth.token}` } }
+    );
+    // Calcula 5 meses a partir de hoy
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 5);
+    setAvailabilityEndDate(endDate);
+
+    setInfo(true);
+    return response.data;
+  } catch (error) {
+    console.error("Error al inicializar disponibilidad:", error);
+  }
+};
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -323,37 +327,71 @@ const fetchContacts = async () => {
     </Row>
 
     {activeSection === "availability" && (
-      <Row className="mb-4">
-        <Col>
-          <h3>Disponibilidad Actualizada</h3>
-          {errorRooms && <Alert variant="danger">{errorRooms}</Alert>}
-          {loadingRooms || !info ? (
-            <p>Cargando disponibilidad...</p>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <Table striped bordered hover>
-                <thead>
-                  <tr>
-                    <th>N° Habitación</th>
-                    <th>Disponible</th>
-                    <th>Última Actualización</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rooms.map((room) => (
-                    <tr key={room._id}>
-                      <td>{room.roomNumber}</td>
-                      <td>{room.isAvailable ? "Sí" : "No"}</td>
-                      <td>{room.updatedAt ? new Date(room.updatedAt).toLocaleString() : "N/A"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </div>
-          )}
-        </Col>
-      </Row>
-    )}
+  <Row className="mb-4">
+    <Col>
+      <h3>Disponibilidad Actualizada</h3>
+      {errorRooms && <Alert variant="danger">{errorRooms}</Alert>}
+
+      {/* Botón para inicializar disponibilidad */}
+      <Button onClick={handleInitAvailability} disabled={info} className="mb-2">
+        Inicializar Disponibilidad
+      </Button>
+
+      {/* Mostrar mensaje con la fecha hasta cuando está disponible */}
+      {info && availabilityEndDate && (
+        <Alert variant="success">
+          Disponibilidad activa hasta{" "}
+          {availabilityEndDate.toLocaleDateString("es-ES", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        </Alert>
+      )}
+
+      {/* Mostrar fecha y hora de la última inicialización */}
+      {info && (
+        <p>
+          Última inicialización:{" "}
+          {availabilityEndDate.toLocaleTimeString("es-ES", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}
+        </p>
+      )}
+
+      {loadingRooms || !info ? (
+        <p>Cargando disponibilidad...</p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <Table responsive striped bordered hover>
+            <thead>
+              <tr>
+                <th>N° Habitación</th>
+                <th>Disponible</th>
+                <th>Última Actualización</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rooms.map((room) => (
+                <tr key={room._id}>
+                  <td>{room.roomNumber}</td>
+                  <td>{room.isAvailable ? "Sí" : "No"}</td>
+                  <td>
+                    {room.updatedAt
+                      ? new Date(room.updatedAt).toLocaleString("es-ES")
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      )}
+    </Col>
+  </Row>
+)}
 
     {activeSection === "contact" && (
       <Row>
