@@ -1,3 +1,4 @@
+/* Estilos para todas las tarjetas de cabañas (base) */
 .card-cabanas {
   display: flex;
   flex-direction: row;
@@ -5,68 +6,115 @@
   border-radius: 0.5rem;
   overflow: hidden;
   background-color: white;
-  max-width: 700px;
-  min-height: 250px;
+  max-width: 800px; /* Valor base restaurado */
+  min-height: 200px;
   margin: 1rem auto;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-
-  /* Para que ambas columnas tengan la misma altura y evitar espacios */
-  align-items: stretch; 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  align-items: stretch;
+  height: 100%;
 }
 
-.card-cabanas .carousel {
-  flex: 1 1 40%;
-  height: 250px;       /* Altura fija para el carrusel */
+/* Estilos específicos para las tarjetas de reservas */
+.card-cabanas.reservas {
+  width: 1000px; /* Ancho fijo solo para reservas */
+}
+
+.carousel {
+  flex: 1 1 50%; /* Valor base restaurado */
+  height: 100%;
   overflow: hidden;
-  max-height: none;    /* Quitar restricción por max-height */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
-.card-cabanas .carousel .slide-content,
-.card-cabanas .carousel img {
+/* Ajuste específico para el carrusel en reservas */
+.card-cabanas.reservas .carousel {
+  flex: 1 1 60%; /* Aumentado a 60% solo para reservas */
+}
+
+.carousel .carousel-slider {
+  height: 100%; /* Ocupa toda la altura del contenedor .carousel */
+  width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+.carousel .carousel-root,
+.carousel .room-carousel {
+  height: 100%; /* Asegura que el carrusel ocupe toda la altura */
+  width: 100%; /* Asegura que ocupe todo el ancho */
+}
+
+.carousel .slide-content,
+.carousel .carousel img {
   width: 100% !important;
-  height: 100% !important;
+  height: 60vh !important; 
   object-fit: cover;
-  margin: 0;
-  padding: 0;
-  display: block;
-  line-height: 0;      /* Eliminar espacio debajo de la imagen */
-}
-
-.card-cabanas img.placeholder-image {
-  width: 100%;
-  height: 250px;
-  object-fit: cover;
+  object-position: center;
   display: block;
   line-height: 0;
+  margin: 0;
+  padding: 0;
+  flex-grow: 1;
+  transition: opacity 0.5s ease;
 }
 
-.card-cabanas .content {
-  flex: 1 1 60%;
+.carousel .carousel .control-arrow {
+  
+  border-radius: 50%;
+  padding: 10px;
+}
+
+
+
+.carousel .carousel .control-prev,
+.carousel .carousel .control-next {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.placeholder-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  line-height: 0;
+  flex-grow: 1;
+}
+
+.content {
+  flex: 1 1 50%; /* Valor base restaurado */
   padding: 1rem 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100%;
 }
 
-.card-cabanas h3 {
+/* Ajuste específico para el contenido en reservas */
+.card-cabanas.reservas .content {
+  flex: 1 1 40%; /* Ajustado a 40% solo para reservas */
+}
+
+.content h3 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #2c5282;
   margin-bottom: 0.5rem;
 }
 
-.card-cabanas p {
+.content p {
   font-size: 1rem;
   color: #4a5568;
   margin-bottom: 1rem;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  
 }
 
-.card-cabanas .flex {
+.flex {
   font-size: 1rem;
   color: #2d3748;
   align-items: center;
@@ -101,40 +149,28 @@
   background-color: #c53030;
 }
 
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .card-cabanas {
-    flex-direction: column;
-    max-width: 100%;
-    min-height: auto; /* para que el alto se adapte */
-  }
-
-  .card-cabanas .carousel {
-    width: 100%;
-    height: 200px;
-  }
-}
-
-/* Estilos para modo homepage-card */
+/* Estilos específicos para modo simple (homepage-card) - Sin cambios */
 .card-cabanas.homepage-card {
-  min-height: 320px;       /* Altura fija para todas las cards */
-  max-width: 400px;  
-  max-height: 600px;      /* Limita ancho para uniformidad */
+  min-height: 320px;
+  max-width: 400px;
+  max-height: 600px;
   border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Distribuye imagen y contenido */
+  justify-content: space-between;
   box-sizing: border-box;
   background-color: white;
   border-radius: 0.5rem;
   overflow: hidden;
+  height: 100%;
 }
 
 .card-cabanas.homepage-card .carousel,
-.card-cabanas.homepage-card img.placeholder-image {
-  height: 180px;           /* Altura fija para la imagen/carrusel */
+.card-cabanas.homepage-card .placeholder-image {
+  height: 70vh;
   width: 100%;
   object-fit: cover;
+  object-position: center;
   border-bottom: 1px solid #f1f5f9;
   display: block;
   line-height: 0;
@@ -146,17 +182,18 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 130px;       /* Mantiene altura mínima para texto */
+  min-height: 130px;
   box-sizing: border-box;
+  height: 100%;
 }
 
 .card-cabanas.homepage-card h3 {
-  font-size: 1.75rem;           /* Más grande */
-  font-weight: 700;             /* Negrita */
-  color: #e53e3e;               /* Color rojo vivo para destacar */
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #e53e3e;
   margin-bottom: 0.75rem;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.25); /* Sombra para dar profundidad */
-  text-transform: uppercase;    /* Opcional: que se vea en mayúsculas */
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.25);
+  text-transform: uppercase;
   text-align: center;
 }
 
@@ -173,7 +210,7 @@
 }
 
 .mensaje-reserva-exitosa {
-  background-color: #38a169; /* verde tipo "success" */
+  background-color: #38a169;
   color: white !important;
   font-size: 1rem;
   text-align: center;
@@ -182,4 +219,35 @@
   font-weight: 600;
   border-radius: 0.375rem;
   transition: all 0.3s ease;
+}
+
+.price-section button:disabled,
+.disabled-button {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Media queries para responsividad - Solo para reservas */
+@media (max-width: 768px) {
+  .card-cabanas.reservas {
+    width: 100%; /* Ajuste para mobile en reservas */
+    min-height: auto;
+    height: auto;
+  }
+
+  .card-cabanas.reservas .carousel {
+    width: 100%;
+    height: 350px; /* Aumentado para más ancho en mobile en reservas */
+    flex-grow: 1;
+  }
+
+  .card-cabanas .carousel .carousel-slider {
+    height: 100%;
+    width: 100%;
+  }
+
+  .card-cabanas .carousel .carousel-root,
+  .card-cabanas .carousel .room-carousel {
+    height: 100%;
+  }
 }
