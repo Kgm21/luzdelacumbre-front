@@ -14,7 +14,7 @@ import Gallery from "./pages/galery";
 import { AuthProvider } from "./context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import Cabanias from "./pages/cabanias";
+import CabanasPage from "./pages/CabanasPage";
 import Reservas from "./pages/reservas";
 import ResumenReserva from "./components/ResumenReserva";
 
@@ -32,7 +32,7 @@ function App() {
               <Route path="/registro" element={<Registro />} />
               <Route path="/contactos" element={<Contactos />} />
               <Route path="/reservas" element={<Reservas />} /> 
-              <Route path="/cabanias" element={<Cabanias />} />
+              <Route path="/cabanias" element={<CabanasPage />} />
               <Route path="/galery" element={<Gallery />} />
               <Route path="/error404" element={<Error404 />} />
               <Route
