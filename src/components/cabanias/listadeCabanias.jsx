@@ -8,7 +8,12 @@ import "./cardcabanas.css";
 
 function CardsCabanas({ cabana, checkInDate, checkOutDate, passengersCount, userId, onBookingSuccess, showPrice = true, modoSimple = false, isReservation = false, className = "" }) {
   const navigate = useNavigate();
-  const [reserva, setreserva] = useState("");
+  const [reserva, setReserva] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Depuración: Verificar los datos recibidos
+  console.log("Datos de la cabaña:", cabana);
 
   if (!cabana) {
     return <p>No hay datos de cabaña disponibles.</p>;
@@ -21,49 +26,35 @@ function CardsCabanas({ cabana, checkInDate, checkOutDate, passengersCount, user
   const getImageUrl = (url) =>
     url.startsWith('http') ? url : `${API_URL}${url.startsWith('/') ? url : '/' + url}`;
 
-  const handleReservar = async () => {
+  const handleReservar = () => {
     if (!userId) {
-      navigate('/login');
+      alert("Debes iniciar sesión para hacer una reserva.");
+      window.setTimeout(() => {
+        navigate('/login');
+      }, 400);
+      return;
     }
+
     const token = localStorage.getItem("token");
-
-    try {
-      const response = await fetch(`${API_URL}/api/bookings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          roomId: cabana._id,
-          checkInDate,
-          checkOutDate,
-          passengersCount,
-        }),
-      });
-
-      const data = await response.json();
-
-      console.log("DATA RESERVA: ", data);
-
-      if (!response.ok) {
-        if (data.errors) {
-          console.error("Errores de validación:", data.errors);
-          alert(
-            `Errores:\n${data.errors.map((err) => `• ${err.msg}`).join("\n")}`
-          );
-        } else {
-          alert(`Error: ${data.message || 'Error al crear la reserva'}`);
-        }
-        throw new Error(data.message || 'Error al crear la reserva');
-      }
-
-      setreserva("reserva");
-      if (onBookingSuccess) onBookingSuccess(data.booking);
-
-    } catch (error) {
-      console.error('Error en la reserva:', error);
+    if (!token || token.trim() === "") {
+      setError("Token no válido o no encontrado. Por favor, inicia sesión nuevamente.");
+      window.setTimeout(() => {
+        navigate('/login');
+      }, 400);
+      return;
     }
+
+    // Redirigir a /resumen-reserva con los datos de la reserva
+    console.log("Redirigiendo a /resumen-reserva con datos:", { cabana, checkInDate, checkOutDate, passengersCount });
+    navigate('/resumen-reserva', {
+      state: {
+        cabana,
+        checkInDate,
+        checkOutDate,
+        passengersCount,
+        userId,
+      },
+    });
   };
 
   return (
@@ -109,17 +100,17 @@ function CardsCabanas({ cabana, checkInDate, checkOutDate, passengersCount, user
         {modoSimple ? (
           <>
             {detailedDescription && (
-              <p>{detailedDescription}</p> 
+              <p>{detailedDescription}</p>
             )}
             <div className="flex">
               <FaUsers className="mr-1" />
-              <span className="font-semibold">Capacidad:</span> Hasta {cabana.capacity} personas
+              <span className="font-semibold"> Capacidad:</span> Hasta {cabana.capacity} personas
             </div>
           </>
         ) : (
           <>
             {detailedDescription && (
-              <p className="text-xs text-gray-600 mb-2">{detailedDescription}</p> 
+              <p className="text-xs text-gray-600 mb-2">{detailedDescription}</p>
             )}
             <div className="flex items-center text-gray-700 text-xs mb-3">
               <FaUsers className="mr-1 text-gray-600" />
@@ -130,12 +121,17 @@ function CardsCabanas({ cabana, checkInDate, checkOutDate, passengersCount, user
               <div className="price-section">
                 <p className="text-xs text-gray-500 mb-0.5">Tarifas desde</p>
                 <p className="text-lg font-bold text-blue-700 mb-2">
-                  USD ${cabana.price} / noche <span className="text-xs text-gray-500">+IVA</span>
+                  USD ${(cabana.price || 0)} / noche <span className="text-xs text-gray-500">+IVA</span>
                 </p>
-                <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 rounded-md transition-colors duration-200 text-sm" onClick={handleReservar}>
-                  {reserva ? 'RESERVADO' : 'Reservar'}
+                <button
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 rounded-md transition-colors duration-200 text-sm"
+                  onClick={handleReservar}
+                  disabled={!!reserva || loading}
+                >
+                  {reserva ? 'RESERVADO' : loading ? 'Reservando...' : 'Reservar'}
                 </button>
                 {reserva && (<p className="mensaje-reserva-exitosa">Reserva Exitosa</p>)}
+                {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
               </div>
             )}
           </>

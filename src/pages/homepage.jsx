@@ -46,7 +46,14 @@ const HomePage = () => {
         ),
       }));
 
-      setCabanas(cabanasConURLs);
+      // Ordenar por roomNumber
+      const sortedCabanas = [...cabanasConURLs].sort((a, b) => {
+        const numA = parseInt(a.roomNumber, 10);
+        const numB = parseInt(b.roomNumber, 10);
+        return isNaN(numA) || isNaN(numB) ? a.roomNumber.localeCompare(b.roomNumber) : numA - numB;
+      });
+
+      setCabanas(sortedCabanas);
     } catch (err) {
       setError(err.message || "Error desconocido");
     } finally {
@@ -77,8 +84,6 @@ const HomePage = () => {
           {/* Subtitle with a slightly lighter text shadow */}
           <p className="text-4xl text-white subtitle-with-shadow">Descubre el descanso perfecto en la naturaleza</p>
         </div>
-
-        
       </header>
 
       {/* Cabins Section */}
@@ -110,9 +115,9 @@ const HomePage = () => {
             {!cargando &&
               !error &&
               cabanas.map((cabana) => (
-                  <Col key={cabana._id} xs={12} sm={6} md={4} className="mb-4">
-                    <CardsCabanas cabana={cabana} modoSimple={true} />
-                  </Col>
+                <Col key={cabana._id} xs={12} sm={6} md={4} className="mb-4">
+                  <CardsCabanas cabana={cabana} modoSimple={true} />
+                </Col>
               ))}
           </Row>
         </Container>

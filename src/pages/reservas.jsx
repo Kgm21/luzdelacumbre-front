@@ -3,14 +3,19 @@ import { DateRange } from 'react-date-range';
 import { format, differenceInDays } from 'date-fns';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import {API_URL} from '../CONFIG/api'; // Agregado
+import { API_URL } from '../CONFIG/api';
+import { useNavigate } from 'react-router-dom'; // Solo useNavigate de react-router-dom
+import { useAuth } from '../context/AuthContext'; // Corrección: importar useAuth desde AuthContext
 import './styles/reservas.css';
-import { FaCalendarAlt, FaUserFriends, FaTag, FaSearch } from 'react-icons/fa';
+import { FaCalendarAlt, FaUserFriends, FaSearch } from 'react-icons/fa';
 import CardsCabanas from '../components/cabanias/listadeCabanias';
+import ResumenReserva from '../components/ResumenReserva.jsx';
 
 function Reservas() {
   console.log('Base URL:', API_URL);
 
+  const navigate = useNavigate();
+  const { auth } = useAuth(); // Ahora usa el hook personalizado
   const [adultos, setAdultos] = useState(1);
   const [ninos, setNinos] = useState(0);
   const [habitaciones, setHabitaciones] = useState(1);
@@ -20,14 +25,14 @@ function Reservas() {
   const [cabanasDisponibles, setCabanasDisponibles] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
+  const [mostrarResumen, setMostrarResumen] = useState(false);
+  const [selectedCabana, setSelectedCabana] = useState(null);
 
   const calendarioRef = useRef(null);
   const huespedesRef = useRef(null);
   const searchBarRef = useRef(null);
 
-  const userId = localStorage.getItem("userId");
-
-  const MIN_NIGHTS = 5; // Igual que en el backend
+  const MIN_NIGHTS = 5;
 
   useEffect(() => {
     const manejarClickAfuera = (e) => {
@@ -57,7 +62,7 @@ function Reservas() {
   const [rangoFecha, setRangoFecha] = useState([
     {
       startDate: new Date(),
-      endDate: new Date(new Date().setDate(new Date().getDate() + MIN_NIGHTS)), // Ajustar fecha inicial
+      endDate: new Date(new Date().setDate(new Date().getDate() + MIN_NIGHTS)),
       key: 'selection',
     },
   ]);
@@ -79,7 +84,6 @@ function Reservas() {
       const start = rangoFecha[0].startDate;
       const end = rangoFecha[0].endDate;
 
-      // Validar fechas en el frontend
       if (end <= start) {
         setError('La fecha de salida debe ser posterior a la fecha de llegada.');
         setCabanasDisponibles([]);
@@ -93,7 +97,6 @@ function Reservas() {
         return;
       }
 
-      // Validar totalGuests
       const totalGuests = adultos + ninos;
       if (totalGuests < 1 || totalGuests > 6) {
         setError('La cantidad de pasajeros debe estar entre 1 y 6.');
@@ -124,12 +127,13 @@ function Reservas() {
 
       const data = await response.json();
       const adjustedData = data.map(cabana => ({
-      ...cabana,
-      imageUrls: cabana.imageUrls.map(url =>  `${API_URL.replace('/api', '')}${url}`)
-    }));
+        ...cabana,
+        imageUrls: cabana.imageUrls.map(url => `${API_URL.replace('/api', '')}${url}`),
+        image: cabana.imageUrls[0],
+        price: cabana.price,
+      }));
       console.log('Datos recibidos:', data);
       setCabanasDisponibles(adjustedData);
-      console.log('cabanasDisponibles actualizado:', data);
     } catch (e) {
       console.error('Error al obtener cabañas:', e);
       setError(`No se pudieron cargar las cabañas: ${e.message}. Inténtalo de nuevo.`);
@@ -150,6 +154,66 @@ function Reservas() {
     console.log(
       `Buscando hospedaje del ${inicio} al ${fin}, para ${adultos} adultos, ${ninos} niños y ${habitaciones} habitación(es). Código promocional: ${codigoPromocional}`
     );
+  };
+
+  const handleReservarClick = (cabana) => {
+    if (!auth.isAuthenticated) {
+      setError("Debes iniciar sesión para reservar.");
+      navigate("/login");
+      return;
+    }
+    setSelectedCabana(cabana);
+    setError(null);
+    setMostrarResumen(true);
+  };
+
+  const handleConfirmarReserva = async () => {
+    if (!auth.isAuthenticated) {
+      setError("Debes iniciar sesión para confirmar la reserva.");
+      navigate("/login");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/bookings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cabanaId: selectedCabana._id,
+          checkInDate: rangoFecha[0].startDate.toISOString(),
+          checkOutDate: rangoFecha[0].endDate.toISOString(),
+          passengersCount: adultos + ninos,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al confirmar la reserva");
+      }
+
+      alert("Reserva confirmada con éxito!");
+      setMostrarResumen(false);
+      setSelectedCabana(null);
+      navigate("/reservas"); // Regresar a la lista de reservas
+    } catch (error) {
+      console.error("Error en la reserva:", error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCerrarResumen = () => {
+    setMostrarResumen(false);
+    setSelectedCabana(null);
+    setError(null);
   };
 
   return (
@@ -185,7 +249,7 @@ function Reservas() {
                   onChange={(item) => setRangoFecha([item.selection])}
                   moveRangeOnFirstSelection={false}
                   ranges={rangoFecha}
-                  minDate={new Date()} // Evitar fechas pasadas
+                  minDate={new Date()}
                 />
               </div>
             )}
@@ -259,7 +323,6 @@ function Reservas() {
               </div>
             )}
           </div>
-         
           <button
             onClick={buscarHospedaje}
             className="boton-ver-tarifas flex items-center justify-center gap-2"
@@ -296,24 +359,39 @@ function Reservas() {
               No se encontraron cabañas para los filtros seleccionados.
             </p>
           )}
-       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-  {!cargando && !error && cabanasDisponibles.map(c => (
-    <CardsCabanas
-    key={c._id}
-    cabana={c}
-    userId={userId} 
-    checkInDate={rangoFecha[0].startDate.toISOString()}
-    checkOutDate={rangoFecha[0].endDate.toISOString()}
-    passengersCount={adultos + ninos}
-    onBookingSuccess={(booking) => console.log('Reserva creada:', booking)}
-  />
-  ))}
-</div>
-
-
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {!cargando && !error && [...cabanasDisponibles] // Crear una copia del array
+              .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber)) // Ordenar por roomNumber
+              .map((c) => (
+                <CardsCabanas
+                  key={c._id}
+                  cabana={c}
+                  userId={auth.isAuthenticated ? localStorage.getItem("userId") : null}
+                  checkInDate={rangoFecha[0].startDate.toISOString()}
+                  checkOutDate={rangoFecha[0].endDate.toISOString()}
+                  passengersCount={adultos + ninos}
+                  onBookingSuccess={(booking) => console.log('Reserva creada:', booking)}
+                  onReservarClick={() => handleReservarClick(c)}
+                />
+              ))}
+          </div>
         </section>
       </div>
+{mostrarResumen && selectedCabana && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <ResumenReserva
+      cabana={selectedCabana}
+      checkIn={format(rangoFecha[0].startDate, 'dd/MM/yyyy')}
+      checkOut={format(rangoFecha[0].endDate, 'dd/MM/yyyy')}
+      guests={`${adultos} adultos, ${ninos} niños`}
+      firstName={auth?.user?.name}
+      lastName={auth?.user?.apellido}
+      onClose={handleCerrarResumen}
+      onConfirm={handleConfirmarReserva}
+    />
+  </div>
+)}
+
     </>
   );
 }

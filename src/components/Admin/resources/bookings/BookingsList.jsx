@@ -1,5 +1,6 @@
 import React from "react";
 import { Table, Button, Alert, Badge } from "react-bootstrap";
+import { API_URL } from "../../../../CONFIG/api";
 
 // Función para formatear fechas en UTC
 function formatDateUTC(dateStr) {
@@ -55,7 +56,7 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
     if (!window.confirm("¿Estás seguro de que deseas eliminar esta reserva?")) return;
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/bookings/${id}`, {
+      const res = await fetch(`${API_URL}/api/bookings/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${auth.token}` },
       });
