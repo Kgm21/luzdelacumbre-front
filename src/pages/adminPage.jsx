@@ -332,10 +332,7 @@ const fetchContacts = async () => {
       <h3>Disponibilidad Actualizada</h3>
       {errorRooms && <Alert variant="danger">{errorRooms}</Alert>}
 
-      {/* Botón para inicializar disponibilidad */}
-      <Button onClick={handleInitAvailability} disabled={info} className="mb-2">
-        Inicializar Disponibilidad
-      </Button>
+      
 
       {/* Mostrar mensaje con la fecha hasta cuando está disponible */}
       {info && availabilityEndDate && (
