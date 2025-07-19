@@ -1,0 +1,38 @@
+.section-title {
+  font-size: 2rem;
+  color: #2e593e;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.booking-card {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.booking-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.2em 0.5em;
+  border-radius: 0.25rem;
+  color: #fff;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.status-confirmed {
+  background-color: #28a745;
+}
+
+.status-pending {
+  background-color: #ffc107;
+}
+
+.status-needs_review {
+  background-color: #dc3545;
+}

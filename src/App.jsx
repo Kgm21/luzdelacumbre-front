@@ -17,6 +17,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import CabanasPage from "./pages/CabanasPage";
 import Reservas from "./pages/reservas";
 import ResumenReserva from "./components/ResumenReserva";
+import MyBookings from "./pages/misReserva";
 
 function App() {
   return (
@@ -38,19 +39,27 @@ function App() {
               <Route
                 path="/resumen-reserva"
                 element={
-                  <PrivateRoute>
+                  <PrivateRoute >
                     <ResumenReserva />
                   </PrivateRoute>
                 }
               />
+               <Route
+    path="/administracion"
+    element={
+      <PrivateRoute allowedRoles={['admin']}>
+        <AdminPage />
+      </PrivateRoute>
+    }
+  />
               <Route
-                path="/administracion"
-                element={
-                  <PrivateRoute>
-                    <AdminPage />
-                  </PrivateRoute>
-                }
-              />
+  path="/mis-reservas"
+  element={
+    <PrivateRoute allowedRoles={['client', 'admin']}>
+      <MyBookings />
+    </PrivateRoute>
+  }
+/>
               <Route path="*" element={<Navigate to="/error404" />} />
             </Routes>
           </main>

@@ -1,18 +1,18 @@
-import React, { useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { auth } = useAuth();
 
-  if (!auth.isAuthenticated) {
+  if (!auth?.isAuthenticated) {
     return <Navigate to="/login" />;
   }
-  if (auth.role !== "admin") {
-    return <Navigate to="/home" />;
+
+  if (!allowedRoles.includes(auth.role)) {
+    
+
+    // Por defecto
+    return <Navigate to="/" />;
   }
 
   return children;
 };
 
-export default ProtectedRoute; // Asegúrate de que esté exportado
+export default ProtectedRoute;

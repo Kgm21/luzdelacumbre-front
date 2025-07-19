@@ -1,141 +1,66 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import {
-  Form,
-  Button,
-  Container,
-  Row,
-  Col,
-  Alert
-} from "react-bootstrap";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import "./styles/auth.css";
-import { API_URL } from "../CONFIG/api";
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../CONFIG/api';
 
-// ✅ Validación con YUP
-const schema = yup.object({
-  email: yup.string().email("Email inválido").required("Email requerido"),
-  password: yup.string().min(6, "Mínimo 6 caracteres").required("Contraseña requerida"),
-});
-
-const LoginPage = () => {
+function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // 👉 para saber desde dónde vino
-  const { login, validateToken } = useAuth();
-  const [error, setError] = React.useState("");
-  const mensajeRedireccion = location.state?.message || ""; // 👈 mensaje opcional
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
-
-  const onSubmit = async (data) => {
-    setError("");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(null);
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Error desconocido" }));
-        throw new Error(errorData.message || "Credenciales inválidas");
+      const data = await res.json();
+      console.log('🔐 [Login] Response:', data);
+      if (res.ok) {
+        await login(data.token, data.user.id, data.user.role, data.refreshToken);
+        navigate('/reservas');
+      } else {
+        setError(data.message || 'Error al iniciar sesión');
       }
-
-      const result = await response.json();
-
-      if (!result.token || !result.user?.id) {
-        throw new Error("Respuesta del servidor incompleta");
-      }
-
-      const validation = await validateToken(result.token);
-      if (!validation.valid) {
-        throw new Error("Token inválido recibido del servidor");
-      }
-
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("userId", result.user.id);
-      localStorage.setItem("user", JSON.stringify(result.user));
-      localStorage.setItem("apellido", JSON.stringify(result.apellido));
-
-      login(result.token, result.user.role);
-
-      // ✅ Redirige a la ruta anterior si la hay
-      const destino = location.state?.from?.pathname || "/reservas";
-      navigate(destino, { replace: true });
     } catch (err) {
-      console.error("Error en el login:", err);
-      setError(err.message);
+      setError('Error al conectar con el servidor');
+      console.error('🔐 [Login] Error:', err);
     }
   };
 
   return (
-    <Container className="auth-wrapper">
-      <Row className="d-flex justify-content-start">
-        <Col md={4}>
-          <div className="form-container">
-            <h2 className="text-center">Iniciar Sesión</h2>
-
-            {/* ✅ Mensaje de redirección desde ruta protegida */}
-            {mensajeRedireccion && (
-              <Alert variant="warning">{mensajeRedireccion}</Alert>
-            )}
-
-            {error && (
-              <Alert variant="danger">{error}</Alert>
-            )}
-
-            <Form onSubmit={handleSubmit(onSubmit)}>
-              <Form.Group className="mb-3" controlId="formEmail">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  placeholder="Ingrese su email"
-                  {...register("email")}
-                  isInvalid={!!errors.email}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.email?.message}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-3" controlId="formPassword">
-                <Form.Label>Contraseña</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Ingrese su contraseña"
-                  {...register("password")}
-                  isInvalid={!!errors.password}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.password?.message}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Button variant="primary" type="submit" className="w-100">
-                Iniciar Sesión
-              </Button>
-            </Form>
-
-            <div className="text-center mt-3">
-              <p className="form-label">
-                ¿No tienes cuenta?{" "}
-                <Link to="/registro" className="text-decoration-none">
-                  Regístrate aquí
-                </Link>
-              </p>
-            </div>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+    <div style={{ maxWidth: '400px', margin: 'auto', padding: '20px' }}>
+      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+      <form onSubmit={handleLogin}>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            style={{ width: '100%', marginBottom: '10px' }}
+          />
+        </div>
+        <div>
+          <label>Contraseña:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Contraseña"
+            style={{ width: '100%', marginBottom: '10px' }}
+          />
+        </div>
+        <button type="submit" style={{ width: '100%' }}>Iniciar Sesión</button>
+      </form>
+    </div>
   );
-};
+}
 
 export default LoginPage;

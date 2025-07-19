@@ -4,8 +4,8 @@ import { format, differenceInDays } from 'date-fns';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import { API_URL } from '../CONFIG/api';
-import { useNavigate } from 'react-router-dom'; // Solo useNavigate de react-router-dom
-import { useAuth } from '../context/AuthContext'; // Corrección: importar useAuth desde AuthContext
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './styles/reservas.css';
 import { FaCalendarAlt, FaUserFriends, FaSearch } from 'react-icons/fa';
 import CardsCabanas from '../components/cabanias/listadeCabanias';
@@ -15,7 +15,13 @@ function Reservas() {
   console.log('Base URL:', API_URL);
 
   const navigate = useNavigate();
-  const { auth } = useAuth(); // Ahora usa el hook personalizado
+  const { auth, validateToken } = useAuth();
+
+  // Mover el log de auth a un useEffect para evitar el error de inicialización
+  useEffect(() => {
+    console.log('🔍 [Reservas] Auth state:', auth);
+  }, [auth]);
+
   const [adultos, setAdultos] = useState(1);
   const [ninos, setNinos] = useState(0);
   const [habitaciones, setHabitaciones] = useState(1);
@@ -109,7 +115,7 @@ function Reservas() {
 
       const apiUrl = `${API_URL}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
 
-      console.log('Fetching from:', apiUrl);
+      console.log('🔍 [Reservas] Fetching from:', apiUrl);
 
       const response = await fetch(apiUrl, {
         headers: {
@@ -117,11 +123,11 @@ function Reservas() {
         },
       });
 
-      console.log('Response status:', response.status);
+      console.log('🔍 [Reservas] Response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
-        console.log('Error data:', errorData);
+        console.log('🔍 [Reservas] Error data:', errorData);
         throw new Error(errorData.message || response.statusText);
       }
 
@@ -132,10 +138,10 @@ function Reservas() {
         image: cabana.imageUrls[0],
         price: cabana.price,
       }));
-      console.log('Datos recibidos:', data);
+      console.log('🔍 [Reservas] Datos recibidos:', data);
       setCabanasDisponibles(adjustedData);
     } catch (e) {
-      console.error('Error al obtener cabañas:', e);
+      console.error('🔍 [Reservas] Error al obtener cabañas:', e);
       setError(`No se pudieron cargar las cabañas: ${e.message}. Inténtalo de nuevo.`);
       setCabanasDisponibles([]);
     } finally {
@@ -152,38 +158,58 @@ function Reservas() {
     const inicio = format(rangoFecha[0].startDate, 'dd MMM');
     const fin = format(rangoFecha[0].endDate, 'dd MMM');
     console.log(
-      `Buscando hospedaje del ${inicio} al ${fin}, para ${adultos} adultos, ${ninos} niños y ${habitaciones} habitación(es). Código promocional: ${codigoPromocional}`
+      `🔍 [Reservas] Buscando hospedaje del ${inicio} al ${fin}, para ${adultos} adultos, ${ninos} niños y ${habitaciones} habitación(es). Código promocional: ${codigoPromocional}`
     );
   };
 
-  const handleReservarClick = (cabana) => {
-    if (!auth.isAuthenticated) {
-      setError("Debes iniciar sesión para reservar.");
-      navigate("/login");
+  const handleReservarClick = async (cabana) => {
+    console.log('🔍 [Reservas] handleReservarClick - Auth state:', auth);
+    if (!auth.isAuthenticated || !auth.token) {
+      setError('Debes iniciar sesión para reservar.');
+      navigate('/login');
       return;
     }
+
+    // Validar el token antes de proceder
+    const validation = await validateToken(auth.token);
+    console.log('🔍 [Reservas] Token validation:', validation);
+    if (!validation.valid) {
+      setError('Sesión inválida. Por favor, inicia sesión nuevamente.');
+      navigate('/login');
+      return;
+    }
+
     setSelectedCabana(cabana);
     setError(null);
     setMostrarResumen(true);
   };
 
   const handleConfirmarReserva = async () => {
-    if (!auth.isAuthenticated) {
-      setError("Debes iniciar sesión para confirmar la reserva.");
-      navigate("/login");
+    console.log('🔍 [Reservas] handleConfirmarReserva - Auth state:', auth);
+    if (!auth.isAuthenticated || !auth.token) {
+      setError('Debes iniciar sesión para confirmar la reserva.');
+      navigate('/login');
       return;
     }
 
-    const token = localStorage.getItem("token");
-    setLoading(true);
+    // Validar el token antes de enviar la solicitud
+    const validation = await validateToken(auth.token);
+    console.log('🔍 [Reservas] Token validation for booking:', validation);
+    if (!validation.valid) {
+      setError('Sesión inválida. Por favor, inicia sesión nuevamente.');
+      navigate('/login');
+      return;
+    }
+
+    setCargando(true);
     setError(null);
 
     try {
       const response = await fetch(`${API_URL}/api/bookings`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
         },
         body: JSON.stringify({
           cabanaId: selectedCabana._id,
@@ -194,19 +220,20 @@ function Reservas() {
       });
 
       const data = await response.json();
+      console.log('🔍 [Reservas] Booking response:', data);
       if (!response.ok) {
-        throw new Error(data.message || "Error al confirmar la reserva");
+        throw new Error(data.message || 'Error al confirmar la reserva');
       }
 
-      alert("Reserva confirmada con éxito!");
+      alert('Reserva confirmada con éxito!');
       setMostrarResumen(false);
       setSelectedCabana(null);
-      navigate("/reservas"); // Regresar a la lista de reservas
+      navigate('/my-bookings');
     } catch (error) {
-      console.error("Error en la reserva:", error.message);
+      console.error('🔍 [Reservas] Error en la reserva:', error.message);
       setError(error.message);
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
@@ -360,38 +387,41 @@ function Reservas() {
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {!cargando && !error && [...cabanasDisponibles] // Crear una copia del array
-              .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber)) // Ordenar por roomNumber
-              .map((c) => (
-                <CardsCabanas
-                  key={c._id}
-                  cabana={c}
-                  userId={auth.isAuthenticated ? localStorage.getItem("userId") : null}
-                  checkInDate={rangoFecha[0].startDate.toISOString()}
-                  checkOutDate={rangoFecha[0].endDate.toISOString()}
-                  passengersCount={adultos + ninos}
-                  onBookingSuccess={(booking) => console.log('Reserva creada:', booking)}
-                  onReservarClick={() => handleReservarClick(c)}
-                />
-              ))}
+            {!cargando && !error &&
+              [...cabanasDisponibles]
+                .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber))
+                .map((c) => (
+                  <CardsCabanas
+                    key={c._id}
+                    cabana={c}
+                    userId={auth.isAuthenticated ? auth.userId : null}
+                    checkInDate={rangoFecha[0].startDate.toISOString()}
+                    checkOutDate={rangoFecha[0].endDate.toISOString()}
+                    passengersCount={adultos + ninos}
+                    onBookingSuccess={(booking) => {
+                      console.log('🔍 [Reservas] Reserva creada:', booking);
+                      navigate('/my-bookings');
+                    }}
+                    onReservarClick={() => handleReservarClick(c)}
+                  />
+                ))}
           </div>
         </section>
       </div>
-{mostrarResumen && selectedCabana && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <ResumenReserva
-      cabana={selectedCabana}
-      checkIn={format(rangoFecha[0].startDate, 'dd/MM/yyyy')}
-      checkOut={format(rangoFecha[0].endDate, 'dd/MM/yyyy')}
-      guests={`${adultos} adultos, ${ninos} niños`}
-      firstName={auth?.user?.name}
-      lastName={auth?.user?.apellido}
-      onClose={handleCerrarResumen}
-      onConfirm={handleConfirmarReserva}
-    />
-  </div>
-)}
-
+      {mostrarResumen && selectedCabana && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <ResumenReserva
+            cabana={selectedCabana}
+            checkIn={format(rangoFecha[0].startDate, 'dd/MM/yyyy')}
+            checkOut={format(rangoFecha[0].endDate, 'dd/MM/yyyy')}
+            guests={`${adultos} adultos, ${ninos} niños`}
+            firstName={auth?.user?.name || 'Usuario'}
+            lastName={auth?.user?.apellido || ''}
+            onClose={handleCerrarResumen}
+            onConfirm={handleConfirmarReserva}
+          />
+        </div>
+      )}
     </>
   );
 }

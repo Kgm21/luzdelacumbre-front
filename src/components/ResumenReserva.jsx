@@ -91,7 +91,7 @@ const ResumenReserva = () => {
       <div className="resumen-reserva-info"><span className="label">Check-out:</span> <span>{formatDate(state?.checkOutDate)}</span></div>
       <div className="resumen-reserva-info"><span className="label">Noches:</span> <span>{noches}</span></div>
       <div className="resumen-reserva-info"><span className="label">Pasajeros:</span> <span>{state?.passengersCount || 'N/A'}</span></div>
-      <div className="resumen-reserva-info"><span className="label">Usuario:</span> <span>{usuario ? `${usuario.name} ${usuario.apellido || ''}` : 'N/A'}</span></div>
+      
 
       <div className="resumen-reserva-total">Precio total estimado: USD ${totalPrice.toLocaleString('es-AR')}</div>
 
