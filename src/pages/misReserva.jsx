@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { API_URL } from '../CONFIG/api';
-import { format, parseISO } from 'date-fns';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode';  // corregido import
+import { jwtDecode } from 'jwt-decode';
 import { Card, Button, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
-import "./styles/Mybookings.css";  // ✅ Correcto
-
+import "./styles/Mybookings.css"; // ✅ Import correcto
 
 function MyBookings() {
   const { auth } = useAuth();
@@ -16,17 +14,17 @@ function MyBookings() {
   const [error, setError] = useState(null);
 
   function formatDateUTC(dateStr) {
-  if (!dateStr) return "Sin fecha";
-  const d = new Date(dateStr);
-  return isNaN(d)
-    ? "Fecha inválida"
-    : d.toLocaleDateString("es-AR", {
-        timeZone: "UTC",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-}
+    if (!dateStr) return "Sin fecha";
+    const d = new Date(dateStr);
+    return isNaN(d)
+      ? "Fecha inválida"
+      : d.toLocaleDateString("es-AR", {
+          timeZone: "UTC",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+  }
 
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas cancelar esta reserva?')) return;
@@ -87,12 +85,9 @@ function MyBookings() {
         }
 
         const data = await res.json();
-       console.log('Reservas recibidas:', data);
+        console.log('Reservas recibidas:', data);
 
-
-        // Validar que data.data sea array
         setReservas(Array.isArray(data) ? data : []);
-
       } catch (err) {
         if (err.name !== 'AbortError') setError(err.message);
       } finally {
@@ -129,7 +124,6 @@ function MyBookings() {
     );
   }
 
-  // Protección segura ante reservas no definidas o no array
   if (!reservas || !Array.isArray(reservas) || reservas.length === 0) {
     return (
       <Container className="my-5">
@@ -145,8 +139,10 @@ function MyBookings() {
       <h2 className="mb-4 text-center section-title">Mis Reservas</h2>
       <Row className="g-4">
         {reservas.map((r) => {
-          const checkIn = format(parseISO(r.checkInDate), 'dd/MM/yyyy');
-          const checkOut = format(parseISO(r.checkOutDate), 'dd/MM/yyyy');
+          const checkIn = formatDateUTC(r.checkInDate);
+          const checkOut = formatDateUTC(r.checkOutDate);
+          const createdAt = formatDateUTC(r.createdAt);
+
           return (
             <Col key={r._id} xs={12} md={6} lg={4}>
               <Card className="booking-card h-100 shadow-sm">
@@ -178,7 +174,7 @@ function MyBookings() {
                   </div>
                 </Card.Body>
                 <Card.Footer className="text-muted text-end small">
-                  Creada: {format(parseISO(r.createdAt), 'dd/MM/yyyy')}
+                  Creada: {createdAt}
                 </Card.Footer>
               </Card>
             </Col>
