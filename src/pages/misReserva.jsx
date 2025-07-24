@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {jwtDecode} from 'jwt-decode';  // corregido import
 import { Card, Button, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
-import './styles/MyBookings.css';
+import '../pages/styles/MyBookings.css';
 
 function MyBookings() {
   const { auth } = useAuth();
