@@ -42,11 +42,12 @@ const RoomsEdit = ({ roomId, auth, onRoomUpdated, onCancel }) => {
         }
 
         const data = await res.json();
+        const room = data.room; // ✅ accedemos a room
         setFormData({
-          roomNumber: data.roomNumber || "",
-          description: data.description || "",
-          price: data.price || "",
-          capacity: data.capacity || 1,
+          roomNumber: room.roomNumber || "",
+          description: room.description || "",
+          price: room.price || "",
+          capacity: room.capacity || 1,
         });
       } catch (err) {
         setError(err.message || "Error al obtener habitación");
@@ -85,7 +86,6 @@ const RoomsEdit = ({ roomId, auth, onRoomUpdated, onCancel }) => {
 
       if (!resp.ok) {
         const data = await resp.json();
-
         if (resp.status === 400) {
           throw new Error(data.message || "Datos inválidos. Verificá los campos.");
         } else if (resp.status === 401) {
@@ -179,6 +179,7 @@ const RoomsEdit = ({ roomId, auth, onRoomUpdated, onCancel }) => {
 };
 
 export default RoomsEdit;
+ 
 
 
 

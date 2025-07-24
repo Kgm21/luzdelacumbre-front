@@ -14,6 +14,19 @@ function MyBookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  function formatDateUTC(dateStr) {
+  if (!dateStr) return "Sin fecha";
+  const d = new Date(dateStr);
+  return isNaN(d)
+    ? "Fecha inválida"
+    : d.toLocaleDateString("es-AR", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+}
+
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas cancelar esta reserva?')) return;
 
@@ -73,10 +86,12 @@ function MyBookings() {
         }
 
         const data = await res.json();
-        console.log('Reservas recibidas:', data.data);
+       console.log('Reservas recibidas:', data);
+
 
         // Validar que data.data sea array
-        setReservas(Array.isArray(data.data) ? data.data : []);
+        setReservas(Array.isArray(data) ? data : []);
+
       } catch (err) {
         if (err.name !== 'AbortError') setError(err.message);
       } finally {
