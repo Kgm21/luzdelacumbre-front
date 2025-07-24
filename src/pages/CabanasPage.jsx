@@ -1,9 +1,9 @@
+// src/pages/CabanasPage.jsx
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import "./styles/cabanas.css";
 import { API_URL } from "../CONFIG/api";
 import { Link } from "react-router-dom";
-
+import "./styles/cabanas.css";
 
 const CabanasPage = () => {
   const [cabanas, setCabanas] = useState([]);
@@ -15,40 +15,36 @@ const CabanasPage = () => {
         return response.json();
       })
       .then((data) => {
-        if (Array.isArray(data.data)) {
-          // Filtrar solo las cabañas disponibles
-          const cabanasDisponibles = data.data.filter((cabana) => cabana.isAvailable);
+        // Tu API devuelve { rooms: [...], total }
+        const listado = Array.isArray(data.rooms) ? data.rooms : [];
 
-          // Mapear y elegir imagen random para cada cabaña
-          const cabanasConImagenRandom = cabanasDisponibles.map((cabana) => {
-            let imagenRandom = "/images/default-cabana.jpg"; // imagen por defecto
+        // Filtrar solo las cabañas disponibles
+        const disponibles = listado.filter((cabana) => cabana.isAvailable);
 
-            if (cabana.imageUrls && cabana.imageUrls.length > 0) {
-              const imagenSeleccionada =
-                cabana.imageUrls[
-                  Math.floor(Math.random() * cabana.imageUrls.length)
-                ];
-              // Si es URL absoluta, usarla tal cual; si es relativa, añadir API_URL
-              if (/^https?:\/\//.test(imagenSeleccionada)) {
-                imagenRandom = imagenSeleccionada;
-              } else {
-                imagenRandom = `${API_URL}/${imagenSeleccionada}`;
-              }
-            }
+        // Escoger una imagen al azar de cada cabaña
+        const conImagenRandom = disponibles.map((cabana) => {
+          let imagenRandom = "/images/default-cabana.jpg"; // fallback
 
-            return {
-              ...cabana,
-              imagenRandom,
-            };
-          });
+          if (Array.isArray(cabana.imageUrls) && cabana.imageUrls.length > 0) {
+            const seleccionada =
+              cabana.imageUrls[
+                Math.floor(Math.random() * cabana.imageUrls.length)
+              ];
+            imagenRandom = seleccionada.startsWith("http")
+              ? seleccionada
+              : `${API_URL}${seleccionada}`;
+          }
 
-          setCabanas(cabanasConImagenRandom);
-        } else {
-          setCabanas([]);
-        }
+          return {
+            ...cabana,
+            imagenRandom,
+          };
+        });
+
+        setCabanas(conImagenRandom);
       })
-      .catch((error) => {
-        console.error("Error fetching cabañas:", error);
+      .catch((err) => {
+        console.error("Error fetching cabañas:", err);
         setCabanas([]);
       });
   }, []);
@@ -57,23 +53,22 @@ const CabanasPage = () => {
     <Container fluid className="p-4">
       <Row>
         {cabanas.length === 0 && (
-          <p>No hay cabañas disponibles en este momento.</p>
+          <p className="text-center w-100">No hay cabañas disponibles en este momento.</p>
         )}
         {cabanas.map((cabana) => (
-          <Col md={6} key={cabana._id || cabana.id} className="mb-4">
+          <Col md={6} lg={6} key={cabana._id || cabana.id} className="mb-4">
             <div className="cabana-card">
               <img
                 src={cabana.imagenRandom}
-                alt={cabana.nombre || cabana.roomNumber}
+                alt={`Cabaña ${cabana.roomNumber}`}
                 className="cabana-img"
               />
               <div className="cabana-text">
-                <h2>Cabaña {cabana.nombre || cabana.roomNumber}</h2>
-                <p>Capacidad {cabana.capacity || cabana.capacidad} personas</p>
-                <Link to="/error404" className="btn-info btn">
-  más información
-</Link>
-
+                <h2>Cabaña {cabana.roomNumber}</h2>
+                <p>Capacidad: {cabana.capacity} personas</p>
+                <Link to={`/cabanas/${cabana._id}`} className="btn btn-info">
+                  Más información
+                </Link>
               </div>
             </div>
           </Col>

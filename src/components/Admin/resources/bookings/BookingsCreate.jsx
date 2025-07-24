@@ -1,115 +1,246 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import axios from "axios";
 import { API_URL } from "../../../../CONFIG/api";
 import { useAuth } from "../../../../context/AuthContext";
 
 const BookingsCreate = ({ onBookingCreated, rooms }) => {
-  const { auth } = useAuth(); // Usar el hook useAuth en lugar de la prop auth
+  const { auth } = useAuth();
   const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({
-    userId: "",
-    roomId: "",
-    checkInDate: "",
-    checkOutDate: "",
-    passengersCount: 1,
-  });
+  const [bookings, setBookings] = useState([]);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [userId, setUserId] = useState("");
+  const [roomId, setRoomId] = useState("");
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [passengersCount, setPassengersCount] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!auth?.token) {
-        setError("Debes iniciar sesión para cargar datos.");
-        setLoading(false);
-        return;
-      }
+  // Memoizar cabañas habilitadas
+  const enabledRooms = useMemo(() => rooms.filter((room) => room.isAvailable === true), [rooms]);
 
-      setLoading(true);
-      try {
-        await fetchUsers();
-      } catch (err) {
-        setError("Error al cargar datos iniciales");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [auth?.token]); // Refetch si auth.token cambia
-
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/usuarios?pagina=0&limite=50`, {
-        headers: { Authorization: `Bearer ${auth.token}` },
-      });
-      console.log("🔍 [BookingsCreate] Users response:", res.data);
-      setUsers(res.data.usuarios || res.data || []);
-    } catch (err) {
-      console.error("🔍 [BookingsCreate] Error al cargar usuarios:", err);
-      setError(err.response?.data?.message || "Error al cargar usuarios");
-      setUsers([]);
+  // Memoizar la función de carga de datos
+  const loadData = useCallback(async () => {
+    if (!auth?.token) {
+      setError("Debes iniciar sesión para cargar datos.");
+      setLoading(false);
+      return;
     }
-  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "passengersCount" ? parseInt(value, 10) || 1 : value,
-    }));
-  };
+    try {
+      setLoading(true);
+      const [usersResponse, bookingsResponse] = await Promise.all([
+        axios.get(`${API_URL}/api/usuarios?pagina=0&limite=50`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+          timeout: 10000,
+        }).catch(() => ({ data: { usuarios: [] } })),
+        axios.get(`${API_URL}/api/bookings`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+          timeout: 10000,
+        }).catch(() => ({ data: { data: [] } })),
+      ]);
+
+      setUsers(usersResponse.data.usuarios || []);
+      setBookings(bookingsResponse.data.data || []);
+      console.log("Usuarios cargados:", usersResponse.data.usuarios);
+      console.log("Reservas cargadas:", bookingsResponse.data.data);
+    } catch (err) {
+      setError("Error al cargar datos. Por favor selecciona fechas para verificar disponibilidad.");
+      console.error("Error en loadData:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [auth?.token]);
+
+  useEffect(() => {
+    console.log("Cabañas recibidas:", rooms);
+    console.log("Cabañas habilitadas:", enabledRooms);
+    loadData();
+  }, [loadData, enabledRooms]);
+
+  // Filtrar cabañas disponibles según fechas
+  useEffect(() => {
+    console.log("useEffect de filtrado ejecutado");
+    if (!checkInDate || !checkOutDate) {
+      console.log("Sin fechas seleccionadas, esperando fechas...");
+      setAvailableRooms([]);
+      setError("");
+      return;
+    }
+
+    if (new Date(checkInDate) >= new Date(checkOutDate)) {
+      setError("La fecha de check-out debe ser posterior a la de check-in.");
+      setAvailableRooms([]);
+      return;
+    }
+
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+
+    // Normalizar fechas a medianoche para evitar problemas con horas
+    checkIn.setHours(0, 0, 0, 0);
+    checkOut.setHours(0, 0, 0, 0);
+
+    const filteredRooms = enabledRooms.filter((room) => {
+      const conflictingBookings = bookings.filter((booking) => {
+        const bookingCheckIn = new Date(booking.checkInDate);
+        const bookingCheckOut = new Date(booking.checkOutDate);
+        bookingCheckIn.setHours(0, 0, 0, 0);
+        bookingCheckOut.setHours(0, 0, 0, 0);
+        return (
+          booking.roomId === room._id &&
+          checkIn < bookingCheckOut &&
+          checkOut > bookingCheckIn
+        );
+      });
+      return conflictingBookings.length === 0;
+    });
+
+    console.log("Cabañas disponibles filtradas:", filteredRooms);
+    setAvailableRooms(filteredRooms);
+    if (filteredRooms.length === 0) {
+      setError("No hay cabañas disponibles para las fechas seleccionadas.");
+    } else {
+      setError("");
+    }
+  }, [checkInDate, checkOutDate, enabledRooms, bookings]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
     if (!auth?.token) {
       setError("Debes iniciar sesión para crear una reserva.");
       return;
     }
 
-    setError("");
-    setSuccess("");
+    if (!checkInDate || !checkOutDate) {
+      setError("Por favor selecciona las fechas de check-in y check-out.");
+      return;
+    }
+
+    if (new Date(checkInDate) >= new Date(checkOutDate)) {
+      setError("La fecha de check-out debe ser posterior a la de check-in.");
+      return;
+    }
+
+    if (!roomId || !availableRooms.some((room) => room._id === roomId)) {
+      setError("Por favor selecciona una cabaña válida.");
+      return;
+    }
+
+    const bookingData = {
+      userId,
+      roomId,
+      checkInDate,
+      checkOutDate,
+      passengersCount,
+    };
 
     try {
-      const res = await axios.post(`${API_URL}/api/bookings`, formData, {
+      const res = await axios.post(`${API_URL}/api/bookings`, bookingData, {
         headers: { Authorization: `Bearer ${auth.token}` },
+        timeout: 10000,
       });
-      console.log("🔍 [BookingsCreate] Booking created:", res.data);
+      console.log("Reserva creada:", res.data);
       setSuccess("Reserva creada correctamente");
-      setFormData({
-        userId: "",
-        roomId: "",
-        checkInDate: "",
-        checkOutDate: "",
-        passengersCount: 1,
-      });
-      onBookingCreated();
+      setUserId("");
+      setRoomId("");
+      setCheckInDate("");
+      setCheckOutDate("");
+      setPassengersCount(1);
+      await loadData(); // Recargar datos para actualizar availableRooms
+      onBookingCreated(); // Notificar al padre para actualizar BookingsList
     } catch (err) {
-      console.error("🔍 [BookingsCreate] Error al crear reserva:", err);
       setError(err.response?.data?.message || "Error al crear reserva");
+      console.error("Error al crear reserva:", err);
     }
   };
 
-  if (loading) {
-    return <p>Cargando datos...</p>;
-  }
+  if (loading) return <p>Cargando datos...</p>;
 
   return (
     <div>
       <h4>Crear Reserva</h4>
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
+
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-2">
-          <Form.Label>Usuario</Form.Label>
-          <Form.Select
-            name="userId"
-            value={formData.userId}
-            onChange={handleChange}
+        <Form.Group className="mb-2" controlId="checkInDate">
+          <Form.Label>Fecha Check-In</Form.Label>
+          <Form.Control
+            type="date"
+            value={checkInDate}
+            onChange={(e) => setCheckInDate(e.target.value)}
             required
+            min={new Date().toISOString().split("T")[0]}
+            aria-describedby="checkInDateHelp"
+          />
+          <Form.Text id="checkInDateHelp" muted>
+            Selecciona la fecha de ingreso.
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group className="mb-2" controlId="checkOutDate">
+          <Form.Label>Fecha Check-Out</Form.Label>
+          <Form.Control
+            type="date"
+            value={checkOutDate}
+            onChange={(e) => setCheckOutDate(e.target.value)}
+            required
+            min={checkInDate || new Date().toISOString().split("T")[0]}
+            aria-describedby="checkOutDateHelp"
+          />
+          <Form.Text id="checkOutDateHelp" muted>
+            Selecciona la fecha de salida.
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group className="mb-2" controlId="roomSelect">
+          <Form.Label>Cabaña</Form.Label>
+          <Form.Select
+            value={roomId}
+            onChange={(e) => {
+              console.log("Cabaña seleccionada:", e.target.value);
+              setRoomId(e.target.value);
+            }}
+            required
+            disabled={!checkInDate || !checkOutDate || availableRooms.length === 0}
+            aria-describedby="roomSelectHelp"
           >
             <option value="">Seleccionar</option>
-            {Array.isArray(users) && users.length > 0 ? (
+            {availableRooms.length > 0 ? (
+              availableRooms.map((room) => (
+                <option key={room._id} value={room._id}>
+                  N° {room.roomNumber} - {room.type}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                {checkInDate && checkOutDate
+                  ? "No hay cabañas disponibles"
+                  : "Selecciona fechas para verificar disponibilidad"}
+              </option>
+            )}
+          </Form.Select>
+          <Form.Text id="roomSelectHelp" muted>
+            Selecciona una cabaña disponible.
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group className="mb-2" controlId="userSelect">
+          <Form.Label>Usuario</Form.Label>
+          <Form.Select
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            required
+            aria-describedby="userSelectHelp"
+          >
+            <option value="">Seleccionar</option>
+            {users.length > 0 ? (
               users.map((user) => (
                 <option key={user._id} value={user._id}>
                   {user.name} ({user.email})
@@ -121,68 +252,29 @@ const BookingsCreate = ({ onBookingCreated, rooms }) => {
               </option>
             )}
           </Form.Select>
+          <Form.Text id="userSelectHelp" muted>
+            Selecciona un usuario para la reserva.
+          </Form.Text>
         </Form.Group>
 
-        <Form.Group className="mb-2">
-          <Form.Label>Habitación</Form.Label>
-          <Form.Select
-            name="roomId"
-            value={formData.roomId}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Seleccionar</option>
-            {Array.isArray(rooms) && rooms.length > 0 ? (
-              rooms.map((room) => (
-                <option key={room._id} value={room._id}>
-                  N° {room.roomNumber} - {room.type}
-                </option>
-              ))
-            ) : (
-              <option value="" disabled>
-                No hay habitaciones disponibles
-              </option>
-            )}
-          </Form.Select>
-        </Form.Group>
-
-        <Form.Group className="mb-2">
-          <Form.Label>Fecha Check-In</Form.Label>
-          <Form.Control
-            type="date"
-            name="checkInDate"
-            value={formData.checkInDate}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-2">
-          <Form.Label>Fecha Check-Out</Form.Label>
-          <Form.Control
-            type="date"
-            name="checkOutDate"
-            value={formData.checkOutDate}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-2">
+        <Form.Group className="mb-2" controlId="passengersCount">
           <Form.Label>Pasajeros</Form.Label>
           <Form.Control
             type="number"
-            name="passengersCount"
             min={1}
             max={6}
-            value={formData.passengersCount}
-            onChange={handleChange}
+            value={passengersCount}
+            onChange={(e) => setPassengersCount(parseInt(e.target.value, 10) || 1)}
             required
+            aria-describedby="passengersCountHelp"
           />
+          <Form.Text id="passengersCountHelp" muted>
+            Ingresa el número de pasajeros (1-6).
+          </Form.Text>
         </Form.Group>
 
-        <Button type="submit" variant="primary" className="mb-3 w-100" disabled={loading}>
-          {loading ? 'Creando...' : 'Crear'}
+        <Button type="submit" variant="primary" className="mb-3 w-100">
+          Crear
         </Button>
       </Form>
     </div>

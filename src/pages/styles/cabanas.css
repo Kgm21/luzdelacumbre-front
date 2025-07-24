@@ -39,7 +39,7 @@
 .cabana-text p {
   font-size: 1.1rem;
   margin-bottom: 0.7rem;
-  color: black;
+  color: white;
 }
 
 .btn-info {
@@ -56,4 +56,6 @@
 
 .btn-info:hover {
   background-color: #b7411a;
+  color:black
 }
+

@@ -1,82 +1,82 @@
-import React, { useState, useRef } from "react";
+import { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { API_URL } from "../../../../CONFIG/api";
-import ImageSelector from "../../../ImageSelector";
+import { useAuth } from "../../../../context/AuthContext";
 
-const RoomsCreate = ({ auth, onRoomCreated }) => {
+const RoomsCreate = ({ onRoomCreated }) => {
+  const { auth } = useAuth();
   const [roomNumber, setRoomNumber] = useState("");
   const [type, setType] = useState("cabana");
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [capacity, setCapacity] = useState(1);
+  const [capacity, setCapacity] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
-  const [photos, setPhotos] = useState(null);
-  const [selectedImage, setSelectedImage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const fileInputRef = useRef();
-
-  const handleImageChange = (e) => {
-    setPhotos(e.target.files);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Validaciones básicas
-    if (!roomNumber || price <= 0 || capacity <= 0) {
-      setError("Por favor completa todos los campos obligatorios correctamente.");
+    if (!auth?.token) {
+      setError("Debes iniciar sesión para crear una habitación.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("roomNumber", roomNumber);
-    formData.append("type", type);
-    formData.append("price", Number(price));
-    formData.append("description", description);
-    formData.append("capacity", Number(capacity));
-    formData.append("isAvailable", String(isAvailable));
-
-    // Imágenes subidas manualmente
-    if (photos) {
-      Array.from(photos).forEach((photo) => {
-        formData.append("photos", photo);
-      });
+    // Validaciones básicas
+    if (!roomNumber.trim() || !price || !capacity) {
+      setError("Por favor completa los campos obligatorios.");
+      return;
     }
 
-    // Imagen seleccionada desde galería
-    if (selectedImage) {
-      formData.append("selectedImage", selectedImage);
+    const parsedPrice = parseFloat(price);
+    const parsedCapacity = parseInt(capacity, 10);
+
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      setError("El precio debe ser un número mayor a cero.");
+      return;
+    }
+
+    if (isNaN(parsedCapacity) || parsedCapacity <= 0) {
+      setError("La capacidad debe ser un número mayor a cero.");
+      return;
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/rooms`, {
+      const roomRes = await fetch(`${API_URL}/api/rooms`, {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${auth.token}`,
         },
-        body: formData,
+        body: JSON.stringify({
+          roomNumber: roomNumber.trim(),
+          type: type.trim(),
+          price: parsedPrice,
+          description: description.trim(),
+          capacity: parsedCapacity,
+          isAvailable,
+        }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al crear la habitación");
+      const roomData = await roomRes.json();
 
-      setSuccess("Habitación creada correctamente");
-      // Resetear formulario
+      if (!roomRes.ok) {
+        throw new Error(roomData.message || "Error al crear la habitación.");
+      }
+
+      setSuccess("Habitación creada correctamente.");
       setRoomNumber("");
       setType("cabana");
-      setPrice(0);
+      setPrice("");
       setDescription("");
-      setCapacity(1);
+      setCapacity("");
       setIsAvailable(true);
-      setPhotos(null);
-      setSelectedImage("");
-      if (fileInputRef.current) fileInputRef.current.value = null;
-      if (onRoomCreated) onRoomCreated();
+
+      if (onRoomCreated) await onRoomCreated();
     } catch (err) {
+      console.error("Error al crear la habitación:", err);
       setError(err.message);
     }
   };
@@ -86,36 +86,40 @@ const RoomsCreate = ({ auth, onRoomCreated }) => {
       <h4>Crear Habitación</h4>
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
-      <Form onSubmit={handleSubmit} encType="multipart/form-data">
-        <Form.Group>
+
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-2" controlId="roomNumber">
           <Form.Label>Número de Habitación</Form.Label>
           <Form.Control
             type="text"
             value={roomNumber}
             onChange={(e) => setRoomNumber(e.target.value)}
+            required
           />
         </Form.Group>
 
-        <Form.Group>
+        <Form.Group className="mb-2" controlId="type">
           <Form.Label>Tipo</Form.Label>
           <Form.Control
             type="text"
             value={type}
             onChange={(e) => setType(e.target.value)}
+            required
           />
         </Form.Group>
 
-        <Form.Group>
+        <Form.Group className="mb-2" controlId="price">
           <Form.Label>Precio</Form.Label>
           <Form.Control
             type="number"
-            inputMode="numeric"
+            min="1"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
+            required
           />
         </Form.Group>
 
-        <Form.Group>
+        <Form.Group className="mb-2" controlId="description">
           <Form.Label>Descripción</Form.Label>
           <Form.Control
             type="text"
@@ -124,46 +128,18 @@ const RoomsCreate = ({ auth, onRoomCreated }) => {
           />
         </Form.Group>
 
-        <Form.Group>
-          <Form.Label>Imágenes (subir archivos)</Form.Label>
-          <Form.Control
-            type="file"
-            multiple
-            onChange={handleImageChange}
-            ref={fileInputRef}
-          />
-          {photos && (
-            <div className="mt-2">
-              {[...photos].map((file, idx) => (
-                <img
-                  key={idx}
-                  src={URL.createObjectURL(file)}
-                  alt={`preview-${idx}`}
-                  height="80"
-                  className="me-2 mb-2 rounded border"
-                />
-              ))}
-            </div>
-          )}
-        </Form.Group>
-
-        <Form.Group>
-          <Form.Label>Seleccionar imagen desde galería</Form.Label>
-          <ImageSelector selectedImage={selectedImage} onSelect={setSelectedImage} />
-        </Form.Group>
-
-        <Form.Group>
+        <Form.Group className="mb-2" controlId="capacity">
           <Form.Label>Capacidad</Form.Label>
           <Form.Control
             type="number"
-            inputMode="numeric"
+            min="1"
             value={capacity}
             onChange={(e) => setCapacity(e.target.value)}
+            required
           />
         </Form.Group>
 
-        <Form.Group>
-          <Form.Label>Disponible</Form.Label>
+        <Form.Group className="mb-2" controlId="isAvailable">
           <Form.Check
             type="checkbox"
             checked={isAvailable}
@@ -172,7 +148,7 @@ const RoomsCreate = ({ auth, onRoomCreated }) => {
           />
         </Form.Group>
 
-        <Button variant="primary" type="submit">
+        <Button variant="primary" type="submit" className="w-100">
           Crear
         </Button>
       </Form>
@@ -181,3 +157,5 @@ const RoomsCreate = ({ auth, onRoomCreated }) => {
 };
 
 export default RoomsCreate;
+
+

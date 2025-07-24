@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Alert, Nav, Table } from "react-bootstrap";
-import "./styles/adminPage.css";
+import { useState, useEffect } from "react";
+import { Container, Row, Col, Nav, Alert, Spinner, Table, Button } from "react-bootstrap";
+import { useMemo } from "react";
 
 import UsersList from "../components/Admin/resources/usuarios/UsersList";
 import UsersEdit from "../components/Admin/resources/usuarios/UsersEdit";
@@ -13,6 +13,8 @@ import BookingsList from "../components/Admin/resources/bookings/BookingsList";
 import BookingsCreate from "../components/Admin/resources/bookings/BookingsCreate";
 import BookingsEdit from "../components/Admin/resources/bookings/BookingsEdit";
 
+import ContactsEdit from "../components/Admin/resources/contact/ContactMessagesEdit";
+
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../CONFIG/api";
 
@@ -20,166 +22,130 @@ const AdminPage = () => {
   const { auth, logout } = useAuth();
   const [activeSection, setActiveSection] = useState("users");
 
-  // Usuarios
   const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [errorUsers, setErrorUsers] = useState("");
-  const [editUserId, setEditUserId] = useState(null);
-
-  // Habitaciones
   const [rooms, setRooms] = useState([]);
-  const [loadingRooms, setLoadingRooms] = useState(false);
-  const [errorRooms, setErrorRooms] = useState("");
-  const [editRoomId, setEditRoomId] = useState(null);
-
-  // Reservas
   const [bookings, setBookings] = useState([]);
-  const [loadingBookings, setLoadingBookings] = useState(false);
-  const [errorBookings, setErrorBookings] = useState("");
+  const [contacts, setContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+
+  const [availabilityInfo, setAvailabilityInfo] = useState(null);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [editUserId, setEditUserId] = useState(null);
+  const [editRoomId, setEditRoomId] = useState(null);
   const [editBookingData, setEditBookingData] = useState(null);
 
-  // Contactos
-  const [contacts, setContacts] = useState([]);
-  const [loadingContacts, setLoadingContacts] = useState(false);
-  const [errorContacts, setErrorContacts] = useState("");
-
-  // Disponibilidad
-  const [availabilityEndDate, setAvailabilityEndDate] = useState(null);
-  const [info, setInfo] = useState(false);
-
   const fetchJson = async (url, options = {}) => {
+    if (!auth?.token) throw new Error("Token no disponible");
     const res = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+        Authorization: `Bearer ${auth.token}`,
       },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || res.statusText);
     return data;
   };
+   const [today, endDate] = useMemo(() => {
+    const now = new Date()
+    now.setHours(0,0,0,0)
+    const end = new Date(now)
+    end.setMonth(end.getMonth() + 5)
+    end.setHours(0,0,0,0)
+    return [now, end]
+  }, [])
 
-  // Fetch Usuarios
-  const fetchUsers = async () => {
-    setLoadingUsers(true);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const { usuarios } = await fetchJson(
-        `${API_URL}/api/usuarios?pagina=0&limite=50`
-      );
-      setUsers(usuarios);
-      setErrorUsers("");
+      switch (activeSection) {
+        case "users": {
+          const { usuarios } = await fetchJson(`${API_URL}/api/usuarios?pagina=0&limite=50`);
+          setUsers(usuarios);
+          break;
+        }
+        case "rooms": {
+          const { rooms: roomData } = await fetchJson(`${API_URL}/api/rooms`);
+          setRooms(roomData || []);
+          break;
+        }
+        case "bookings": {
+          const data = await fetchJson(`${API_URL}/api/bookings`);
+          const bookingData =
+            Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
+          setBookings(bookingData);
+          break;
+        }
+        case "contact": {
+          const contactData = await fetchJson(`${API_URL}/api/contact`);
+          setContacts(
+            contactData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          );
+          break;
+        }
+        case "availability": {
+          const res = await fetchJson(`${API_URL}/api/availability/init`, { method: "POST" });
+          if (res?.updatedUntil) {
+            setAvailabilityInfo(res.updatedUntil);
+          } else {
+            setAvailabilityInfo(null);
+          }
+          break;
+        }
+        default:
+          break;
+      }
     } catch (err) {
-      setErrorUsers(err.message);
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoadingUsers(false);
-  };
-
-  // Handlers Usuarios
-  const handleUserEditClick = (id) => setEditUserId(id);
-  const handleUserCancelEdit = () => setEditUserId(null);
-  const handleUserUpdated = () => {
-    fetchUsers();
-    setEditUserId(null);
-  };
-
-  // Fetch Rooms
-  const fetchRooms = async () => {
-    setLoadingRooms(true);
-    try {
-      const { data } = await fetchJson(`${API_URL}/api/rooms`);
-      setRooms(data);
-      setErrorRooms("");
-    } catch (err) {
-      setErrorRooms(err.message);
-    }
-    setLoadingRooms(false);
-  };
-
-  // Handlers Rooms
-  const handleRoomEditClick = (room) => setEditRoomId(room._id);
-  const handleRoomCancelEdit = () => setEditRoomId(null);
-  const handleRoomUpdated = () => {
-    fetchRooms();
-    setEditRoomId(null);
-  };
-
-  // Fetch Bookings
-  const fetchBookings = async () => {
-    setLoadingBookings(true);
-    try {
-      const { data } = await fetchJson(`${API_URL}/api/bookings`);
-      setBookings(data);
-      setErrorBookings("");
-    } catch (err) {
-      setErrorBookings(err.message);
-    }
-    setLoadingBookings(false);
-  };
-
-  // Handlers Bookings
-  const handleBookingEditClick = (booking) => setEditBookingData(booking);
-  const handleBookingCancelEdit = () => setEditBookingData(null);
-  const handleBookingUpdated = () => {
-    fetchBookings();
-    setEditBookingData(null);
-  };
-  const handleBookingCreated = () => fetchBookings();
-
-  // Fetch Contacts
-  const fetchContacts = async () => {
-    setLoadingContacts(true);
-    try {
-      const res = await fetchJson(`${API_URL}/api/contact`);
-      res.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setContacts(res);
-      setErrorContacts("");
-    } catch (err) {
-      setErrorContacts(err.message);
-    }
-    setLoadingContacts(false);
-  };
-
-  // Delete Contact
-  const handleDeleteContact = async (id) => {
-    if (!window.confirm("¿Eliminar este contacto?")) return;
-    await fetchJson(`${API_URL}/api/contact/${id}`, { method: "DELETE" });
-    fetchContacts();
-  };
-
-  // Init Availability
-  const handleInitAvailability = async () => {
-    setInfo(false);
-    await fetchJson(`${API_URL}/api/availability/init`, { method: "POST" });
-    const end = new Date();
-    end.setMonth(end.getMonth() + 5);
-    setAvailabilityEndDate(end);
-    setInfo(true);
   };
 
   useEffect(() => {
-    if (!auth.token) return;
-
-    switch (activeSection) {
-      case "users":
-        fetchUsers();
-        break;
-      case "rooms":
-        fetchRooms();
-        break;
-      case "bookings":
-        fetchBookings();
-        break;
-      case "contact":
-        fetchContacts();
-        break;
-      case "availability":
-        handleInitAvailability();
-        break;
-      default:
-        break;
+    if (auth?.token) {
+      fetchAllData();
+    } else {
+      setError("Autenticación requerida");
     }
-  }, [activeSection, auth.token]);
+  }, [activeSection, auth?.token]);
+
+  const handleDeleteContact = async (id) => {
+    try {
+      await fetchJson(`${API_URL}/api/contact/${id}`, { method: "DELETE" });
+      setContacts((prev) => prev.filter((c) => c._id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleUserUpdated = async () => {
+    await fetchAllData();
+    setEditUserId(null);
+  };
+
+  const handleRoomUpdated = async () => {
+    await fetchAllData();
+    setEditRoomId(null);
+  };
+
+  const handleBookingCreated = async () => {
+    await fetchAllData();
+    setEditBookingData(null);
+  };
+
+  const handleContactResponded = (updatedContact) => {
+    setContacts((prevContacts) =>
+      prevContacts.map((c) => (c._id === updatedContact._id ? updatedContact : c))
+    );
+    setSelectedContact(null);
+  };
 
   return (
     <Container className="my-4">
@@ -192,113 +158,157 @@ const AdminPage = () => {
         <Nav.Item><Nav.Link eventKey="availability">Disponibilidad</Nav.Link></Nav.Item>
       </Nav>
 
+      {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+      {loading && <Spinner animation="border" className="mt-3" />}
+
       <Row className="mt-3">
         {activeSection === "users" && (
-          <Col>
-            <h3>Usuarios</h3>
-            {loadingUsers && <Alert variant="info">Cargando usuarios...</Alert>}
-            {errorUsers && <Alert variant="danger">{errorUsers}</Alert>}
-            <UsersList
-              users={users}
-              onEdit={handleUserEditClick}
-              loading={loadingUsers}
-            />
-            {editUserId && (
-              <>
-                <h3>Editar Usuario</h3>
+          <Row>
+            <Col md={6}>
+              <UsersList
+                users={users}
+                loading={loading}
+                onEdit={setEditUserId}
+                fetchUsers={fetchAllData}
+              />
+            </Col>
+            <Col md={6}>
+              {editUserId ? (
                 <UsersEdit
                   userId={editUserId}
+                  auth={auth}
                   onUserUpdated={handleUserUpdated}
-                  onCancel={handleUserCancelEdit}
+                  onCancel={() => setEditUserId(null)}
+                  fetchUsers={fetchAllData}
                 />
-              </>
-            )}
-          </Col>
+              ) : (
+                <Alert variant="info">Selecciona un usuario para editar</Alert>
+              )}
+            </Col>
+          </Row>
         )}
 
         {activeSection === "rooms" && (
-          <>
+          <Row>
             <Col md={6}>
-              <h3>Habitaciones</h3>
-              {loadingRooms && <Alert variant="info">Cargando habitaciones...</Alert>}
-              {errorRooms && <Alert variant="danger">{errorRooms}</Alert>}
               <RoomsList
                 rooms={rooms}
-                onEditRoom={handleRoomEditClick}
-                loading={loadingRooms}
+                auth={auth}
+                onEditRoom={setEditRoomId}
+                refreshRooms={fetchAllData}
               />
             </Col>
             <Col md={6}>
               {editRoomId ? (
                 <RoomsEdit
-                  id={editRoomId}
+                  roomId={editRoomId}
+                  auth={auth}
                   onRoomUpdated={handleRoomUpdated}
-                  onCancel={handleRoomCancelEdit}
+                  onCancel={() => setEditRoomId(null)}
                 />
               ) : (
-                <RoomsCreate onRoomCreated={fetchRooms} />
+                <RoomsCreate auth={auth} onRoomCreated={handleRoomUpdated} />
               )}
             </Col>
-          </>
+          </Row>
         )}
 
         {activeSection === "bookings" && (
-          <>
+          <Row>
             <Col md={6}>
-              <h3>Reservas</h3>
-              {loadingBookings && <Alert variant="info">Cargando reservas...</Alert>}
-              {errorBookings && <Alert variant="danger">{errorBookings}</Alert>}
               <BookingsList
                 bookings={bookings}
-                onEditBooking={handleBookingEditClick}
-                loading={loadingBookings}
+                auth={auth}
+                onEditBooking={setEditBookingData}
+                refreshBookings={fetchAllData}
               />
             </Col>
             <Col md={6}>
               {editBookingData ? (
                 <BookingsEdit
-                  booking={editBookingData}
-                  onBookingUpdated={handleBookingUpdated}
-                  onCancel={handleBookingCancelEdit}
+                  bookingData={editBookingData}
+                  auth={auth}
+                  onBookingUpdated={handleBookingCreated}
+                  onCancel={() => setEditBookingData(null)}
                 />
               ) : (
-                <BookingsCreate onBookingCreated={handleBookingCreated} />
+                <BookingsCreate
+                  auth={auth}
+                  rooms={rooms}
+                  onBookingCreated={handleBookingCreated}
+                />
               )}
             </Col>
-          </>
+          </Row>
         )}
 
         {activeSection === "contact" && (
           <Col>
-            <h3>Contactos</h3>
-            {loadingContacts && <Alert variant="info">Cargando contactos...</Alert>}
-            {errorContacts && <Alert variant="danger">{errorContacts}</Alert>}
-            <Table striped bordered hover responsive>
-              <thead><tr><th>Nombre</th><th>Email</th><th>Mensaje</th><th>Acciones</th></tr></thead>
-              <tbody>
-                {contacts.map(c => (
-                  <tr key={c._id}>
-                    <td>{c.name}</td><td>{c.email}</td><td>{c.message}</td>
-                    <td><Button variant="danger" size="sm" onClick={() => handleDeleteContact(c._id)}>Eliminar</Button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-        )}
-
-        {activeSection === "availability" && (
-          <Col>
-            <h3>Disponibilidad</h3>
-            {info ? (
-              <Alert variant="success">
-                Activa hasta {availabilityEndDate.toLocaleDateString()}
-              </Alert>
+            {selectedContact ? (
+              <ContactsEdit
+                auth={auth}
+                contactData={selectedContact}
+                onContactResponded={handleContactResponded}
+                onCancel={() => setSelectedContact(null)}
+              />
             ) : (
-              <Alert variant="info">Inicializando disponibilidad...</Alert>
+              <>
+                <Table striped bordered hover responsive>
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Email</th>
+                      <th>Mensaje</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contacts.map((c) => (
+                      <tr key={c._id}>
+                        <td>{c.name}</td>
+                        <td>{c.email}</td>
+                        <td>{c.message}</td>
+                        <td>{c.status || "pendiente"}</td>
+                        <td>
+                          <Button
+                            variant="info"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => setSelectedContact(c)}
+                          >
+                            Contestar
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteContact(c._id)}
+                          >
+                            Eliminar
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                {!contacts.length && <Alert variant="info">No hay mensajes de contacto</Alert>}
+              </>
             )}
           </Col>
         )}
+
+       {activeSection === "availability" && (
+        <Col>
+          <Alert variant="success">
+            Disponibilidad inicializada correctamente {/* o “actualizada” */}
+            <br />
+            <small>
+              Desde <strong>{today.toLocaleDateString()}</strong> hasta{" "}
+              <strong>{endDate.toLocaleDateString()}</strong>
+            </small>
+          </Alert>
+        </Col>
+      )}
       </Row>
 
       <Row className="mt-4">

@@ -1,14 +1,14 @@
 // src/components/Admin/resources/contacts/ContactsEdit.jsx
 import React, { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
-import { API_URL } from '../../../../CONFIG/api';
 
 const ContactsEdit = ({ auth, contactData, onContactResponded, onCancel }) => {
   const [response, setResponse] = useState(contactData.response || '');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -18,34 +18,22 @@ const ContactsEdit = ({ auth, contactData, onContactResponded, onCancel }) => {
       return;
     }
 
-    try {
-      const res = await fetch(`${API_URL}/api/contact/${contactData.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-        },
-        body: JSON.stringify({ response }),
+    // Simulación de envío de respuesta
+    setSending(true);
+    setTimeout(() => {
+      setSuccess('Respuesta simulada enviada correctamente');
+      setSending(false);
+      onContactResponded({
+        ...contactData,
+        response,
+        status: 'respondido', // 🔄 aseguramos coherencia con AdminPage
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Error al enviar la respuesta');
-      }
-
-      setSuccess('Respuesta enviada correctamente');
-      setTimeout(() => {
-        onContactResponded();
-      }, 2000);
-    } catch (err) {
-      setError(err.message);
-      console.error('Error al responder:', err);
-    }
+    }, 1000);
   };
 
   return (
     <div>
-      <h4>Responder Mensaje de Contacto</h4>
+      <h4 className="mb-4">Responder Mensaje de Contacto</h4>
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
       <Form onSubmit={handleSubmit}>
@@ -76,12 +64,14 @@ const ContactsEdit = ({ auth, contactData, onContactResponded, onCancel }) => {
             required
           />
         </Form.Group>
-        <Button variant="primary" type="submit" className="me-2">
-          Enviar Respuesta
-        </Button>
-        <Button variant="secondary" onClick={onCancel}>
-          Cancelar
-        </Button>
+        <div className="d-flex justify-content-between">
+          <Button variant="primary" type="submit" disabled={sending}>
+            {sending ? 'Enviando...' : 'Enviar Respuesta'}
+          </Button>
+          <Button variant="secondary" onClick={onCancel} disabled={sending}>
+            Cancelar
+          </Button>
+        </div>
       </Form>
     </div>
   );

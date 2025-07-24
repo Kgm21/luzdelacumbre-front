@@ -31,8 +31,8 @@ const UsersEdit = ({ userId, onUserUpdated, onCancel }) => {
           },
         });
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text);
+          const data = await res.json();
+          throw new Error(data.message || `Error ${res.status}: ${res.statusText}`);
         }
         const data = await res.json();
         setFormData({
@@ -63,7 +63,6 @@ const UsersEdit = ({ userId, onUserUpdated, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setSuccess("");
 
@@ -73,24 +72,27 @@ const UsersEdit = ({ userId, onUserUpdated, onCancel }) => {
     }
 
     try {
+      const payload = { ...formData };
+      if (!payload.password) delete payload.password;
+
       const resp = await fetch(`${API_URL}/api/usuarios/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!resp.ok) {
-        const text = await resp.text();
-        throw new Error(text);
+        const data = await resp.json();
+        throw new Error(data.message || `Error ${resp.status}: ${resp.statusText}`);
       }
 
       const data = await resp.json();
       console.log("✅ Usuario actualizado:", data);
       setSuccess("Usuario actualizado correctamente.");
-      if (onUserUpdated) onUserUpdated(data.usuario);
+      onUserUpdated(data.usuario);
     } catch (err) {
       console.error("🔍 [UsersEdit] handleSubmit error:", err);
       setError(err.message || "Error al actualizar usuario");
@@ -102,7 +104,6 @@ const UsersEdit = ({ userId, onUserUpdated, onCancel }) => {
   return (
     <Card style={{ minWidth: "300px", maxWidth: "500px" }} className="p-3 shadow-sm ms-md-4 mt-3 mt-md-0">
       <h5>Editar Usuario</h5>
-
       <Form onSubmit={handleSubmit}>
         {error && <Alert variant="danger">{error}</Alert>}
         {success && <Alert variant="success">{success}</Alert>}
@@ -155,5 +156,4 @@ const UsersEdit = ({ userId, onUserUpdated, onCancel }) => {
   );
 };
 
-export default UsersEdit;
-
+export default UsersEdit; 

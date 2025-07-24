@@ -2,7 +2,6 @@ import React from "react";
 import { Table, Button, Alert, Badge } from "react-bootstrap";
 import { API_URL } from "../../../../CONFIG/api";
 
-// Función para formatear fechas en UTC
 function formatDateUTC(dateStr) {
   if (!dateStr) return "Sin fecha";
   const d = new Date(dateStr);
@@ -16,7 +15,6 @@ function formatDateUTC(dateStr) {
       });
 }
 
-// Función para formatear números como moneda
 function formatPrice(price) {
   if (price == null) return "-";
   return price.toLocaleString("es-AR", {
@@ -30,14 +28,13 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
   const [error, setError] = React.useState("");
   const [mostrarPasadas, setMostrarPasadas] = React.useState(false);
 
-  const ahora = new Date();
+  const ahora = React.useMemo(() => new Date(), []);
 
   const reservasFiltradas = React.useMemo(() => {
-    return bookings.filter((booking) =>
-      mostrarPasadas
-        ? new Date(booking.checkOutDate) < ahora
-        : new Date(booking.checkOutDate) >= ahora
-    );
+    return bookings.filter((booking) => {
+      const checkOut = new Date(booking.checkOutDate);
+      return mostrarPasadas ? checkOut < ahora : checkOut >= ahora;
+    });
   }, [bookings, mostrarPasadas, ahora]);
 
   const sortedBookings = React.useMemo(() => {
@@ -69,6 +66,8 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
       setError(err.message);
     }
   };
+  console.log("Reservas recibidas en BookingsList:", bookings);
+
 
   return (
     <div>
@@ -124,10 +123,7 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
                   <td>{booking.passengersCount ?? "-"}</td>
                   <td>{formatPrice(booking.totalPrice)}</td>
                   <td>
-                    <Badge
-                      bg={estadoColor[booking.status] || "secondary"}
-                      className="me-1"
-                    >
+                    <Badge bg={estadoColor[booking.status] || "secondary"} className="me-1">
                       {booking.status || "-"}
                     </Badge>
                     {active && (
@@ -165,3 +161,5 @@ const BookingsList = ({ bookings, auth, onEditBooking, refreshBookings }) => {
 };
 
 export default BookingsList;
+
+

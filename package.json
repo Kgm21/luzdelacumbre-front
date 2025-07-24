@@ -24,6 +24,7 @@
     "react": "^19.1.0",
     "react-admin": "^5.9.0",
     "react-bootstrap": "^2.10.10",
+    "react-bootstrap-icons": "^1.11.6",
     "react-date-range": "^2.0.1",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.59.0",

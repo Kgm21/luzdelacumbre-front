@@ -1,19 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { Table, Button, Alert } from "react-bootstrap";
-import {API_URL} from '../../../../CONFIG/api'
+import { API_URL } from "../../../../CONFIG/api";
 
 const RoomsList = ({ rooms, auth, onEditRoom, refreshRooms }) => {
-  const [error, setError] = React.useState("");
+  const [error, setError] = useState("");
 
-  const handleToggleAvailability = async (id) => {
+  const handleToggleAvailability = async (roomId, currentAvailability) => {
+    setError("");
+    const newAvailability = !currentAvailability;
     try {
-      const res = await fetch(`${API_URL}/api/rooms/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${auth.token}` },
+      const res = await fetch(`${API_URL}/api/rooms/${roomId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({ isAvailable: newAvailability }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al actualizar habitación");
-      refreshRooms();
+      if (!res.ok) throw new Error(data.message || "Error al actualizar la disponibilidad");
+
+      if (refreshRooms) await refreshRooms();
     } catch (err) {
       setError(err.message);
     }
@@ -22,6 +29,17 @@ const RoomsList = ({ rooms, auth, onEditRoom, refreshRooms }) => {
   if (!Array.isArray(rooms)) {
     return <Alert variant="warning">No hay habitaciones para mostrar</Alert>;
   }
+
+  if (rooms.length === 0) {
+    return <Alert variant="info">No hay habitaciones disponibles</Alert>;
+  }
+
+  const sortedRooms = [...rooms].sort((a, b) => {
+    if (typeof a.roomNumber === "string" && typeof b.roomNumber === "string") {
+      return a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true });
+    }
+    return 0;
+  });
 
   return (
     <div>
@@ -38,7 +56,7 @@ const RoomsList = ({ rooms, auth, onEditRoom, refreshRooms }) => {
           </tr>
         </thead>
         <tbody>
-          {rooms.map((room) => (
+          {sortedRooms.map((room) => (
             <tr key={room._id}>
               <td>{room.roomNumber}</td>
               <td>${room.price}</td>
@@ -48,14 +66,15 @@ const RoomsList = ({ rooms, auth, onEditRoom, refreshRooms }) => {
                 <Button
                   variant="warning"
                   size="sm"
-                  onClick={() => onEditRoom(room)}
+                  onClick={() => onEditRoom(room._id)}
+                  className="me-2"
                 >
                   Editar
-                </Button>{" "}
+                </Button>
                 <Button
                   variant={room.isAvailable ? "danger" : "success"}
                   size="sm"
-                  onClick={() => handleToggleAvailability(room._id)}
+                  onClick={() => handleToggleAvailability(room._id, room.isAvailable)}
                 >
                   {room.isAvailable ? "Deshabilitar" : "Habilitar"}
                 </Button>
@@ -69,3 +88,4 @@ const RoomsList = ({ rooms, auth, onEditRoom, refreshRooms }) => {
 };
 
 export default RoomsList;
+

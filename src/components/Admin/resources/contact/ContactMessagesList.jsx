@@ -1,12 +1,54 @@
 // src/components/Admin/resources/contacts/ContactsList.jsx
-import React from 'react';
-import { Table, Button, Alert } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Table, Button, Alert, Form } from 'react-bootstrap';
+import { API_URL } from "../../../../CONFIG/api";
 
 const ContactsList = ({ contacts, onEditContact, auth, refreshContacts }) => {
+  const [respuesta, setRespuesta] = useState('');
+  const [contactoSeleccionado, setContactoSeleccionado] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleResponder = async () => {
+    setError('');
+    setSuccess('');
+
+    if (!respuesta.trim()) {
+      setError('La respuesta no puede estar vacía.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/contacts/${contactoSeleccionado._id}/responder`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({ response: respuesta }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.message || "Error al responder mensaje");
+      }
+
+      setSuccess('Respuesta enviada correctamente.');
+      setRespuesta('');
+      setContactoSeleccionado(null);
+      refreshContacts();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div>
       <h3>Lista de Mensajes de Contacto</h3>
       <p><strong>Total:</strong> {contacts.length} mensajes</p>
+
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
 
       {contacts.length === 0 ? (
         <Alert variant="info">No hay mensajes de contacto.</Alert>
@@ -54,12 +96,15 @@ const ContactsList = ({ contacts, onEditContact, auth, refreshContacts }) => {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() =>
-                        onEditContact({ ...contact, id: contact._id })
-                      }
-                      disabled={contact.status === 'responded'}
+                      onClick={() => {
+                        setContactoSeleccionado(contact);
+                        setRespuesta(contact.response || '');
+                        setSuccess('');
+                        setError('');
+                      }}
+                      disabled={contact.status === 'responded' || contact.status === 'respondido'}
                     >
-                      Responder
+                      Contestar
                     </Button>
                   </td>
                 </tr>
@@ -68,8 +113,32 @@ const ContactsList = ({ contacts, onEditContact, auth, refreshContacts }) => {
           </Table>
         </div>
       )}
+
+      {contactoSeleccionado && (
+        <div className="mt-4">
+          <h5>Responder a: {contactoSeleccionado.name}</h5>
+          <Form.Group>
+            <Form.Label>Mensaje de respuesta</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              value={respuesta}
+              onChange={(e) => setRespuesta(e.target.value)}
+            />
+          </Form.Group>
+          <div className="mt-2">
+            <Button onClick={handleResponder} variant="success" className="me-2">
+              Enviar Respuesta
+            </Button>
+            <Button variant="secondary" onClick={() => setContactoSeleccionado(null)}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ContactsList;
+

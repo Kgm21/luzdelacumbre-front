@@ -3,7 +3,7 @@ import { API_URL } from '../CONFIG/api';
 import { format, parseISO } from 'date-fns';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import {jwtDecode}from 'jwt-decode';  // corregido import
+import {jwtDecode} from 'jwt-decode';  // corregido import
 import { Card, Button, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
 import './styles/MyBookings.css';
 
@@ -73,9 +73,10 @@ function MyBookings() {
         }
 
         const data = await res.json();
+        console.log('Reservas recibidas:', data.data);
 
-        // Aquí usamos solo data.data que es el array de reservas
-        setReservas(data.data);
+        // Validar que data.data sea array
+        setReservas(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         if (err.name !== 'AbortError') setError(err.message);
       } finally {
@@ -112,7 +113,8 @@ function MyBookings() {
     );
   }
 
-  if (reservas.length === 0) {
+  // Protección segura ante reservas no definidas o no array
+  if (!reservas || !Array.isArray(reservas) || reservas.length === 0) {
     return (
       <Container className="my-5">
         <Alert variant="info" className="text-center">

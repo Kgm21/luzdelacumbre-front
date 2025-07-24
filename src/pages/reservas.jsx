@@ -42,14 +42,16 @@ function Reservas() {
 
   useEffect(() => {
     const manejarClickAfuera = (e) => {
+      // Cierra el calendario si el click es fuera de él, del input que lo activa y de sus componentes internos
       if (
         calendarioRef.current &&
         !calendarioRef.current.contains(e.target) &&
         !e.target.closest('.search-bar-item div[onClick*="setMostrarCalendario"]') &&
-        !e.target.closest('.rdrDateRangeWrapper')
+        !e.target.closest('.rdrDateRangeWrapper') // Elemento interno del componente DateRange
       ) {
         setMostrarCalendario(false);
       }
+      // Cierra el selector de huéspedes si el click es fuera de él y del input que lo activa
       if (
         huespedesRef.current &&
         !huespedesRef.current.contains(e.target) &&
@@ -104,8 +106,10 @@ function Reservas() {
       }
 
       const totalGuests = adultos + ninos;
-      if (totalGuests < 1 || totalGuests > 6) {
-        setError('La cantidad de pasajeros debe estar entre 1 y 6.');
+      // Ajuste para permitir hasta 8 huéspedes según la capacidad de tus cabañas en Postman
+      // Si solo quieres 6, déjalo en totalGuests > 6
+      if (totalGuests < 1 || totalGuests > 8) { // Cambiado de 6 a 8
+        setError('La cantidad de pasajeros debe estar entre 1 y 8.'); // Mensaje ajustado
         setCabanasDisponibles([]);
         return;
       }
@@ -113,7 +117,8 @@ function Reservas() {
       const formattedStartDate = format(start, 'yyyy-MM-dd');
       const formattedEndDate = format(end, 'yyyy-MM-dd');
 
-      const apiUrl = `${API_URL}/api/availability/available-rooms?startDate=${formattedStartDate}&endDate=${formattedEndDate}&guests=${totalGuests}`;
+      // Asegúrate de que API_URL es la base de tu backend (ej: https://luzdelacumbre-back.onrender.com)
+      const apiUrl = `${API_URL}/api/availability/search/rooms?checkInDate=${formattedStartDate}&checkOutDate=${formattedEndDate}&guests=${totalGuests}`;
 
       console.log('🔍 [Reservas] Fetching from:', apiUrl);
 
@@ -131,30 +136,58 @@ function Reservas() {
         throw new Error(errorData.message || response.statusText);
       }
 
-      const data = await response.json();
-      const adjustedData = data.map(cabana => ({
+      const rawData = await response.json(); // Esto ahora será tu array directo desde el backend
+
+      let roomsArray = [];
+      if (Array.isArray(rawData)) {
+        roomsArray = rawData; // Este caso será el que se ejecute ahora
+      } else if (rawData && Array.isArray(rawData.rooms)) {
+        roomsArray = rawData.rooms;
+      } else if (rawData && Array.isArray(rawData.roomsArray)) { // En caso de que se haya envuelto en otra propiedad como 'roomsArray'
+        roomsArray = rawData.roomsArray;
+      } else if (rawData && Array.isArray(rawData.cabanas)) {
+        roomsArray = rawData.cabanas;
+      } else {
+        // Si la estructura no es la esperada, registra un error y no proceses
+        console.error('🔍 [Reservas] Formato de datos de cabañas inesperado:', rawData);
+        setError('Formato de datos de cabañas inesperado del servidor. Por favor, contacte a soporte.');
+        setCabanasDisponibles([]);
+        return;
+      }
+
+      const adjustedData = roomsArray.map(cabana => ({
         ...cabana,
-        imageUrls: cabana.imageUrls.map(url => `${API_URL.replace('/api', '')}${url}`),
-        image: cabana.imageUrls[0],
-        price: cabana.price,
+        // Construye la URL completa de la imagen.
+        // Asegúrate que `API_URL.replace('/api', '')` apunte a la base donde se sirven las estáticas.
+        // Si API_URL es https://luzdelacumbre-back.onrender.com/api, esto se convierte en https://luzdelacumbre-back.onrender.com
+        imageUrls: Array.isArray(cabana.imageUrls)
+          ? cabana.imageUrls.map(url => `${API_URL.replace('/api', '')}${url}`)
+          : [],
+        image: Array.isArray(cabana.imageUrls) && cabana.imageUrls.length > 0
+          ? `${API_URL.replace('/api', '')}${cabana.imageUrls[0]}`
+          : null, // Asigna null si no hay imágenes para evitar errores en el renderizado
+        price: cabana.price, // Asegura que el precio esté presente si es necesario para CardsCabanas
       }));
-      console.log('🔍 [Reservas] Datos recibidos:', data);
+
+      console.log('🔍 [Reservas] Datos recibidos y ajustados:', adjustedData);
       setCabanasDisponibles(adjustedData);
+
     } catch (e) {
       console.error('🔍 [Reservas] Error al obtener cabañas:', e);
-      setError(`No se pudieron cargar las cabañas: ${e.message}. Inténtalo de nuevo.`);
+      setError(`No se pudieron cargar las cabañas: ${e.message}. Por favor, verifica tu conexión o intenta más tarde.`);
       setCabanasDisponibles([]);
     } finally {
       setCargando(false);
     }
-  }, [rangoFecha, adultos, ninos, API_URL]);
+  }, [rangoFecha, adultos, ninos, API_URL]); // Dependencias correctas
 
   useEffect(() => {
+    // Llama a fetchCabanas al montar el componente para tener una lista inicial
     fetchCabanas();
-  }, [fetchCabanas]);
+  }, [fetchCabanas]); // Asegura que se ejecuta cuando fetchCabanas cambia (que es raro, pero es buena práctica)
 
   const buscarHospedaje = () => {
-    fetchCabanas();
+    fetchCabanas(); // Re-ejecuta la búsqueda con los filtros actuales
     const inicio = format(rangoFecha[0].startDate, 'dd MMM');
     const fin = format(rangoFecha[0].endDate, 'dd MMM');
     console.log(
@@ -166,6 +199,7 @@ function Reservas() {
     console.log('🔍 [Reservas] handleReservarClick - Auth state:', auth);
     if (!auth.isAuthenticated || !auth.token) {
       setError('Debes iniciar sesión para reservar.');
+      // Opcional: Puedes mostrar un modal o alert en lugar de navegar directamente
       navigate('/login');
       return;
     }
@@ -180,7 +214,7 @@ function Reservas() {
     }
 
     setSelectedCabana(cabana);
-    setError(null);
+    setError(null); // Limpiar cualquier error previo
     setMostrarResumen(true);
   };
 
@@ -198,6 +232,11 @@ function Reservas() {
     if (!validation.valid) {
       setError('Sesión inválida. Por favor, inicia sesión nuevamente.');
       navigate('/login');
+      return;
+    }
+
+    if (!selectedCabana) {
+      setError('No hay cabaña seleccionada para la reserva.');
       return;
     }
 
@@ -228,10 +267,10 @@ function Reservas() {
       alert('Reserva confirmada con éxito!');
       setMostrarResumen(false);
       setSelectedCabana(null);
-      navigate('/my-bookings');
+      navigate('/my-bookings'); // Redirigir a la página de mis reservas
     } catch (error) {
       console.error('🔍 [Reservas] Error en la reserva:', error.message);
-      setError(error.message);
+      setError(`Error al confirmar la reserva: ${error.message}`);
     } finally {
       setCargando(false);
     }
@@ -240,7 +279,7 @@ function Reservas() {
   const handleCerrarResumen = () => {
     setMostrarResumen(false);
     setSelectedCabana(null);
-    setError(null);
+    setError(null); // Limpiar error al cerrar el resumen
   };
 
   return (
@@ -263,14 +302,14 @@ function Reservas() {
               className="search-bar-input flex items-center justify-between"
               onClick={() => {
                 setMostrarCalendario(!mostrarCalendario);
-                setMostrarHuespedes(false);
+                setMostrarHuespedes(false); // Cierra huéspedes al abrir calendario
               }}
             >
               <span>{format(rangoFecha[0].startDate, 'dd/MM/yyyy')}</span>
               <FaCalendarAlt className="text-gray-400" />
             </div>
             {mostrarCalendario && (
-              <div ref={calendarioRef}>
+              <div ref={calendarioRef} className="absolute z-20 mt-2"> {/* Agregado z-20 para asegurar que esté encima */}
                 <DateRange
                   editableDateInputs={true}
                   onChange={(item) => setRangoFecha([item.selection])}
@@ -287,12 +326,13 @@ function Reservas() {
               className="search-bar-input flex items-center justify-between"
               onClick={() => {
                 setMostrarCalendario(!mostrarCalendario);
-                setMostrarHuespedes(false);
+                setMostrarHuespedes(false); // Cierra huéspedes al abrir calendario
               }}
             >
               <span>{format(rangoFecha[0].endDate, 'dd/MM/yyyy')}</span>
               <FaCalendarAlt className="text-gray-400" />
             </div>
+            {/* El calendario se muestra una sola vez, por eso no repetimos el bloque aquí */}
           </div>
           <div className="search-bar-item">
             <label>Huéspedes</label>
@@ -300,15 +340,15 @@ function Reservas() {
               className="search-bar-input flex items-center justify-between"
               onClick={() => {
                 setMostrarHuespedes(!mostrarHuespedes);
-                setMostrarCalendario(false);
+                setMostrarCalendario(false); // Cierra calendario al abrir huéspedes
               }}
             >
-              <span>{`${adultos} adultos, ${ninos} niños, ${habitaciones} habitación`}</span>
+              <span>{`${adultos} adultos, ${ninos} niños`}</span> {/* Eliminada "habitacion" para ser más genérico */}
               <FaUserFriends className="text-gray-400" />
             </div>
             {mostrarHuespedes && (
               <div
-                className="absolute top-full left-0 mt-2 p-4 bg-white shadow-lg rounded-lg huespedes-popover"
+                className="absolute top-full left-0 mt-2 p-4 bg-white shadow-lg rounded-lg huespedes-popover z-20" /* Agregado z-20 */
                 ref={huespedesRef}
               >
                 <div className="flex justify-between items-center mb-2">
@@ -335,6 +375,9 @@ function Reservas() {
                     </button>
                   </div>
                 </div>
+                {/* La opción de habitaciones se maneja a nivel de cabaña, no como filtro de búsqueda global
+                   Puedes re-añadirla si es una necesidad real para tu UI, pero no suele ser común en búsquedas de hospedaje */}
+                {/*
                 <div className="flex justify-between items-center">
                   <span>Habitaciones</span>
                   <div className="flex items-center gap-2">
@@ -347,6 +390,7 @@ function Reservas() {
                     </button>
                   </div>
                 </div>
+                */}
               </div>
             )}
           </div>
@@ -389,7 +433,7 @@ function Reservas() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {!cargando && !error &&
               [...cabanasDisponibles]
-                .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber))
+                .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber)) // Ordena por número de cabaña
                 .map((c) => (
                   <CardsCabanas
                     key={c._id}
