@@ -108,7 +108,7 @@ const ResumenReserva = () => {
           className="btn-cancelar"
           aria-label="Cancelar reserva"
         >
-          Cancelar
+          Cancelar reserva
         </button>
       </div>
     </div>
