@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { Card, Button, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
-import "./styles/Mybookings.css"; // ✅ Import correcto
+import './styles/Mybookings.css';
 
 function MyBookings() {
   const { auth } = useAuth();
@@ -12,28 +12,57 @@ function MyBookings() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [eliminandoId, setEliminandoId] = useState(null);
 
   function formatDateUTC(dateStr) {
-    if (!dateStr) return "Sin fecha";
+    if (!dateStr) return 'Sin fecha';
     const d = new Date(dateStr);
     return isNaN(d)
-      ? "Fecha inválida"
-      : d.toLocaleDateString("es-AR", {
-          timeZone: "UTC",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
+      ? 'Fecha inválida'
+      : d.toLocaleDateString('es-AR', {
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
         });
   }
+
+  const fetchBookings = async (signal) => {
+    try {
+      const res = await fetch(`${API_URL}/api/bookings/mias`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+        signal,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          [401, 403].includes(res.status)
+            ? data.message || 'No tienes permisos para ver las reservas.'
+            : data.message || 'Error al cargar reservas.'
+        );
+      }
+
+      const data = await res.json();
+      console.log('Reservas recibidas:', data);
+
+      setReservas(Array.isArray(data) ? data : []);
+    } catch (err) {
+      if (err.name !== 'AbortError') setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas cancelar esta reserva?')) return;
 
+    setEliminandoId(id);
     try {
       const res = await fetch(`${API_URL}/api/bookings/mias/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${auth.token}`,
+          Authorization: `Bearer ${auth.token}`,
         },
       });
 
@@ -43,9 +72,12 @@ function MyBookings() {
         throw new Error(data.message || 'Error al cancelar la reserva.');
       }
 
-      setReservas((prev) => prev.filter((r) => r._id !== id));
+      const controller = new AbortController();
+      await fetchBookings(controller.signal);
     } catch (err) {
       alert(err.message);
+    } finally {
+      setEliminandoId(null);
     }
   };
 
@@ -56,10 +88,8 @@ function MyBookings() {
       return;
     }
 
-    let userId;
     try {
-      const decoded = jwtDecode(auth.token);
-      userId = decoded.uid || decoded._id;
+      jwtDecode(auth.token);
     } catch {
       setError('Error al decodificar el token. Contacta al administrador.');
       setLoading(false);
@@ -67,35 +97,8 @@ function MyBookings() {
     }
 
     const controller = new AbortController();
+    fetchBookings(controller.signal);
 
-    const fetchBookings = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/bookings/mias`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(
-            [401, 403].includes(res.status)
-              ? data.message || 'No tienes permisos para ver las reservas.'
-              : data.message || 'Error al cargar reservas.'
-          );
-        }
-
-        const data = await res.json();
-        console.log('Reservas recibidas:', data);
-
-        setReservas(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (err.name !== 'AbortError') setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBookings();
     return () => controller.abort();
   }, [auth]);
 
@@ -150,7 +153,8 @@ function MyBookings() {
                   <Card.Title className="fw-bold mb-2">
                     Cabaña #{r.roomId?.roomNumber || '—'}
                   </Card.Title>
-                  <Card.Text className="flex-grow-1">
+
+                  <div className="flex-grow-1 mb-3">
                     <div><strong>Fechas:</strong> {checkIn} – {checkOut}</div>
                     <div><strong>Huéspedes:</strong> {r.passengersCount}</div>
                     <div><strong>Total:</strong> USD ${r.totalPrice?.toLocaleString()}</div>
@@ -160,7 +164,7 @@ function MyBookings() {
                         {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                       </span>
                     </div>
-                  </Card.Text>
+                  </div>
 
                   <div className="d-grid gap-2 mt-auto">
                     {!r.paid && (
@@ -168,8 +172,12 @@ function MyBookings() {
                         Pagar ahora
                       </Button>
                     )}
-                    <Button variant="outline-danger" onClick={() => handleDelete(r._id)}>
-                      Cancelar reserva
+                    <Button
+                      variant="outline-danger"
+                      onClick={() => handleDelete(r._id)}
+                      disabled={eliminandoId === r._id}
+                    >
+                      {eliminandoId === r._id ? 'Eliminando...' : 'Cancelar reserva'}
                     </Button>
                   </div>
                 </Card.Body>
@@ -186,3 +194,4 @@ function MyBookings() {
 }
 
 export default MyBookings;
+
